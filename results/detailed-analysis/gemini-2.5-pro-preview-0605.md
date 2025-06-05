@@ -1,9 +1,9 @@
-# Детальный анализ: Gemini 2.5 Pro Preview 0605
+# Детальный анализ: Gemini 2.5 Pro Preview 06-05
 
 ## Общая информация
 
-**Модель:** Gemini 2.5 Pro Preview (2024-06-05)  
-**Название модуля:** barista.telegramlogger  
+**Модель:** Google: Gemini 2.5 Pro Preview 06-05  
+**Название модуля:** [barista.telegramlogger](../../models/gemini-2.5-pro-preview-0605/)  
 **Дата анализа:** 06.06.2025  
 
 ## Сводная таблица оценок
