@@ -3,6 +3,7 @@
 ## Общая информация
 
 **Модель:** Google: Gemini 2.5 Pro Preview 06-05  
+**Тип модели:** Рассуждающая  
 **Название модуля:** [barista.telegramlogger](../../models/gemini-2.5-pro-preview-0605/)  
 **Дата анализа:** 06.06.2025  
 
