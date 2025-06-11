@@ -70,6 +70,7 @@
 |-------|--------|-----|--------------|
 | 🥇 1 | [Anthropic: Claude Sonnet 4 Thinking](results/detailed-analysis/claude-sonnet-4-thinking.md) | Рассуждающая | **75/100** |
 | 🥈 2 | [Google: Gemini 2.5 Pro Preview 06-05](results/detailed-analysis/gemini-2.5-pro-preview-0605.md) | Рассуждающая | **66/100** |
+| 🥉 3 | [OpenAI: GPT-4.1](results/detailed-analysis/gpt-4.1-analysis.md) | Генеративная | **58/100** |
 
 **[📊 Сводная таблица результатов →](results/comparison-table.md)** детальное сравнение по всем критериям
 
