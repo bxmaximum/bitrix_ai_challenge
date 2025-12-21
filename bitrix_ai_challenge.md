@@ -29,12 +29,33 @@
 | GET | `favorites.list` | Получить список ID избранных товаров |
 | GET | `favorites.getProducts` | Получить список товаров с данными |
 
-### 5. Кэширование
+### 5. Публичный компонент
+Модуль должен включать публичный компонент `vendor:favorites.button` для размещения на странице товара:
+
+**Функционал компонента:**
+- Кнопка добавления/удаления товара из избранного
+- Визуальное состояние: показывает, в избранном ли товар
+- AJAX-взаимодействие без перезагрузки страницы
+- Анимация при добавлении/удалении
+
+**Дизайн требования:**
+- Современный минималистичный UI
+- Плавные CSS-анимации (hover, click, состояние)
+- Иконка сердечка (заполненное/пустое)
+- Адаптивность под мобильные устройства
+- Тёмная и светлая тема (опционально)
+
+**Параметры компонента:**
+- `PRODUCT_ID` — ID товара
+- `SHOW_COUNTER` — показывать счётчик добавлений (да/нет)
+- `BUTTON_SIZE` — размер кнопки (small/medium/large)
+
+### 6. Кэширование
 - Список избранного для авторизованного пользователя должен кэшироваться
 - При изменении или удалении товара в инфоблоке кэш должен инвалидироваться через теги
 - Использовать механизм тегированного кэша D7
 
-### 6. Административный интерфейс
+### 7. Административный интерфейс
 Страница настроек модуля с возможностью:
 - Выбрать инфоблок каталога товаров
 - Задать время жизни cookie для гостей
@@ -68,23 +89,31 @@
 ```
 local/modules/vendor.favorites/
 ├── install/
+│   ├── components/
+│   │   └── vendor/
+│   │       └── favorites.button/
+│   │           ├── class.php           # Компонент D7
+│   │           ├── templates/
+│   │           │   └── .default/
+│   │           │       ├── template.php
+│   │           │       ├── style.css
+│   │           │       └── script.js
+│   │           └── .description.php
 │   └── index.php
 ├── lib/
 │   ├── Controller/
-│   │   └── Favorites.php          # REST Controller
+│   │   └── Favorites.php              # REST Controller
 │   ├── Service/
-│   │   ├── FavoritesService.php   # Бизнес-логика
-│   │   └── CookieService.php      # Работа с cookie
+│   │   ├── FavoritesService.php       # Бизнес-логика
+│   │   └── CookieService.php          # Работа с cookie
 │   ├── Repository/
-│   │   └── FavoritesRepository.php # Работа с БД
+│   │   └── FavoritesRepository.php    # Работа с БД
 │   ├── Model/
-│   │   └── FavoritesTable.php     # ORM DataManager
-│   └── EventHandler.php           # Обработчики событий
-├── docs/
-│   └── openapi.yaml               # OpenAPI 3.0 спецификация
+│   │   └── FavoritesTable.php         # ORM DataManager
+│   └── EventHandler.php               # Обработчики событий
 ├── lang/
 │   └── ru/
-├── options.php                    # Страница настроек
+├── options.php                        # Страница настроек
 └── include.php
 ```
 
@@ -96,54 +125,26 @@ local/modules/vendor.favorites/
 | `OnAfterIBlockElementDelete` | Удаление товара из избранного всех пользователей |
 | `OnAfterIBlockElementUpdate` | Инвалидация кэша при изменении товара |
 
-## Документация API
+## Пример использования компонента
 
-Модуль должен включать OpenAPI 3.0 спецификацию (`openapi.yaml`) для всех эндпоинтов.
-
-Требования к спецификации:
-- Описание всех эндпоинтов с методами, параметрами и примерами
-- Схемы запросов и ответов (Request/Response schemas)
-- Коды ошибок и их описание
-- Информация об авторизации (CSRF-токен)
-
-Пример структуры для эндпоинта `favorites.add`:
-
-```yaml
-paths:
-  /bitrix/services/main/ajax.php?action=vendor:favorites.api.favorites.add:
-    post:
-      summary: Добавить товар в избранное
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - productId
-                - sessid
-              properties:
-                productId:
-                  type: integer
-                  description: ID товара в инфоблоке
-                  example: 123
-                sessid:
-                  type: string
-                  description: CSRF-токен сессии
-      responses:
-        '200':
-          description: Успешное добавление
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Ошибка валидации
+```php
+<?php
+// На странице товара (detail.php)
+$APPLICATION->IncludeComponent(
+    'vendor:favorites.button',
+    '.default',
+    [
+        'PRODUCT_ID' => $arResult['ID'],
+        'SHOW_COUNTER' => 'N',
+        'BUTTON_SIZE' => 'medium',
+    ]
+);
+?>
 ```
 
 ## Дополнительные условия
 - Приоритет: enterprise-качество кода
 - Код должен быть покрыт PHPDoc-комментариями
 - README с инструкцией по установке и использованию
-- OpenAPI спецификация в файле `docs/openapi.yaml`
+- Компонент должен выглядеть современно и профессионально «из коробки»
 

@@ -1,0 +1,63 @@
+.fav-btn {
+    background: none;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 8px;
+    color: #999;
+}
+
+.fav-btn--small { width: 32px; height: 32px; padding: 6px; }
+.fav-btn--medium { width: 44px; height: 44px; padding: 8px; }
+.fav-btn--large { width: 56px; height: 56px; padding: 12px; }
+
+.fav-btn__icon {
+    width: 100%;
+    height: 100%;
+}
+
+.fav-btn__icon path {
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 2;
+    transition: fill 0.3s ease;
+}
+
+.fav-btn:hover {
+    transform: scale(1.1);
+    color: #ff4757;
+    border-color: #ff4757;
+}
+
+.fav-btn.is-active {
+    color: #ff4757;
+    border-color: #ff4757;
+    animation: heartBeat 0.5s ease-in-out;
+}
+
+.fav-btn.is-active .fav-btn__icon path {
+    fill: #ff4757;
+    stroke: #ff4757;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.fav-btn.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
