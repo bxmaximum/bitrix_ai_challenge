@@ -1,0 +1,274 @@
+/**
+ * Стили компонента "Кнопка Избранное"
+ * 
+ * Современный минималистичный дизайн с плавными анимациями.
+ * Поддерживает три размера: small, medium, large.
+ * Автоматическая адаптация под светлую/тёмную тему.
+ */
+
+/* CSS переменные для кастомизации */
+:root {
+    --vendor-favorites-color-inactive: #9ca3af;
+    --vendor-favorites-color-active: #ef4444;
+    --vendor-favorites-color-hover: #f87171;
+    --vendor-favorites-bg: transparent;
+    --vendor-favorites-bg-hover: rgba(239, 68, 68, 0.1);
+    --vendor-favorites-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --vendor-favorites-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Тёмная тема */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --vendor-favorites-color-inactive: #6b7280;
+        --vendor-favorites-bg-hover: rgba(239, 68, 68, 0.15);
+    }
+}
+
+/* Обёртка компонента */
+.vendor-favorites-wrapper {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* Основная кнопка */
+.vendor-favorites-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: var(--vendor-favorites-bg);
+    color: var(--vendor-favorites-color-inactive);
+    cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: 
+        color var(--vendor-favorites-transition),
+        background-color var(--vendor-favorites-transition),
+        transform var(--vendor-favorites-transition),
+        box-shadow var(--vendor-favorites-transition);
+    font-family: var(--vendor-favorites-font-family);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    outline: none;
+}
+
+/* Размеры кнопки */
+.vendor-favorites-btn--small {
+    width: 32px;
+    height: 32px;
+}
+
+.vendor-favorites-btn--small .vendor-favorites-btn__icon {
+    width: 18px;
+    height: 18px;
+}
+
+.vendor-favorites-btn--medium {
+    width: 44px;
+    height: 44px;
+}
+
+.vendor-favorites-btn--medium .vendor-favorites-btn__icon {
+    width: 24px;
+    height: 24px;
+}
+
+.vendor-favorites-btn--large {
+    width: 56px;
+    height: 56px;
+}
+
+.vendor-favorites-btn--large .vendor-favorites-btn__icon {
+    width: 32px;
+    height: 32px;
+}
+
+/* Иконка */
+.vendor-favorites-btn__icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--vendor-favorites-transition);
+}
+
+.vendor-favorites-btn__icon svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    transition: 
+        opacity var(--vendor-favorites-transition),
+        transform var(--vendor-favorites-transition);
+}
+
+/* Состояния иконки */
+.vendor-favorites-btn__icon-empty {
+    opacity: 1;
+}
+
+.vendor-favorites-btn__icon-filled {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+}
+
+/* Активное состояние */
+.vendor-favorites-btn--active {
+    color: var(--vendor-favorites-color-active);
+}
+
+.vendor-favorites-btn--active .vendor-favorites-btn__icon-empty {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+}
+
+.vendor-favorites-btn--active .vendor-favorites-btn__icon-filled {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Hover эффект */
+.vendor-favorites-btn:hover {
+    background: var(--vendor-favorites-bg-hover);
+    color: var(--vendor-favorites-color-hover);
+}
+
+.vendor-favorites-btn:hover .vendor-favorites-btn__icon {
+    transform: scale(1.1);
+}
+
+.vendor-favorites-btn--active:hover {
+    color: var(--vendor-favorites-color-active);
+}
+
+/* Фокус */
+.vendor-favorites-btn:focus-visible {
+    outline: 2px solid var(--vendor-favorites-color-active);
+    outline-offset: 2px;
+}
+
+/* Active/pressed состояние */
+.vendor-favorites-btn:active {
+    transform: scale(0.92);
+}
+
+/* Ripple эффект */
+.vendor-favorites-btn__ripple {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, var(--vendor-favorites-color-active) 0%, transparent 70%);
+    opacity: 0;
+    transform: scale(0);
+    transition: none;
+    pointer-events: none;
+}
+
+.vendor-favorites-btn--ripple .vendor-favorites-btn__ripple {
+    animation: vendor-favorites-ripple 0.6s ease-out;
+}
+
+@keyframes vendor-favorites-ripple {
+    0% {
+        opacity: 0.3;
+        transform: scale(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2);
+    }
+}
+
+/* Анимация сердцебиения при добавлении */
+.vendor-favorites-btn--heartbeat .vendor-favorites-btn__icon {
+    animation: vendor-favorites-heartbeat 0.6s ease-in-out;
+}
+
+@keyframes vendor-favorites-heartbeat {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.3); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.2); }
+    60% { transform: scale(1); }
+}
+
+/* Анимация загрузки */
+.vendor-favorites-btn--loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.vendor-favorites-btn--loading .vendor-favorites-btn__icon {
+    animation: vendor-favorites-pulse 1s infinite;
+}
+
+@keyframes vendor-favorites-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* Счётчик */
+.vendor-favorites-btn__counter {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--vendor-favorites-color-active);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 9px;
+    pointer-events: none;
+    transform: scale(0.9);
+    transition: transform var(--vendor-favorites-transition);
+}
+
+.vendor-favorites-btn:hover .vendor-favorites-btn__counter {
+    transform: scale(1);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .vendor-favorites-btn--small {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .vendor-favorites-btn--medium {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .vendor-favorites-btn--large {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* Reduced motion для accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .vendor-favorites-btn,
+    .vendor-favorites-btn__icon,
+    .vendor-favorites-btn__icon svg,
+    .vendor-favorites-btn__counter,
+    .vendor-favorites-btn__ripple {
+        transition: none;
+        animation: none;
+    }
+}
+
+
+
+
+
