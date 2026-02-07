@@ -1,0 +1,291 @@
+openapi: 3.0.3
+info:
+  title: Модуль «Избранное» — API
+  description: |
+    REST API модуля vendor.favorites для 1С-Битрикс.
+    Позволяет управлять списком избранных товаров каталога.
+    Работает как для авторизованных пользователей (БД), так и для гостей (шифрованные cookie).
+  version: 1.0.0
+  contact:
+    name: vendor.favorites
+
+servers:
+  - url: /bitrix/services/main/ajax.php
+    description: Стандартная точка входа AJAX Bitrix
+
+paths:
+  /?action=vendor:favorites.Favorites.add:
+    post:
+      operationId: favoritesAdd
+      summary: Добавить товар в избранное
+      description: |
+        Добавляет товар в избранное текущего пользователя.
+        Для авторизованных пользователей — сохраняет в БД.
+        Для гостей — сохраняет в шифрованную cookie.
+      tags:
+        - Избранное
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - productId
+                - sessid
+              properties:
+                productId:
+                  type: integer
+                  description: ID товара в инфоблоке каталога
+                  example: 123
+                  minimum: 1
+                sessid:
+                  type: string
+                  description: CSRF-токен сессии Битрикс
+                  example: abc123def456
+      responses:
+        '200':
+          description: Успешное добавление
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                data:
+                  success: true
+                errors: []
+        '200_error':
+          description: Ошибка валидации или бизнес-логики
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_id:
+                  summary: Некорректный ID товара
+                  value:
+                    status: error
+                    data: null
+                    errors:
+                      - message: ID товара должен быть положительным целым числом
+                        code: INVALID_PRODUCT_ID
+                product_not_found:
+                  summary: Товар не найден
+                  value:
+                    status: error
+                    data: null
+                    errors:
+                      - message: Товар не найден
+                        code: PRODUCT_NOT_FOUND
+                already_in_favorites:
+                  summary: Товар уже в избранном
+                  value:
+                    status: error
+                    data: null
+                    errors:
+                      - message: Товар уже в избранном
+                        code: ALREADY_IN_FAVORITES
+
+  /?action=vendor:favorites.Favorites.remove:
+    post:
+      operationId: favoritesRemove
+      summary: Удалить товар из избранного
+      description: |
+        Удаляет товар из избранного текущего пользователя.
+      tags:
+        - Избранное
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - productId
+                - sessid
+              properties:
+                productId:
+                  type: integer
+                  description: ID товара в инфоблоке каталога
+                  example: 123
+                  minimum: 1
+                sessid:
+                  type: string
+                  description: CSRF-токен сессии Битрикс
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                status: success
+                data:
+                  success: true
+                errors: []
+        '200_error':
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_in_favorites:
+                  summary: Товар не в избранном
+                  value:
+                    status: error
+                    data: null
+                    errors:
+                      - message: Товар не найден в избранном
+                        code: NOT_IN_FAVORITES
+
+  /?action=vendor:favorites.Favorites.list:
+    get:
+      operationId: favoritesList
+      summary: Получить список ID избранных товаров
+      description: |
+        Возвращает массив ID товаров, которые находятся в избранном
+        текущего пользователя.
+      tags:
+        - Избранное
+      parameters:
+        - name: sessid
+          in: query
+          required: true
+          description: CSRF-токен сессии Битрикс
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список ID товаров
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      productIds:
+                        type: array
+                        items:
+                          type: integer
+                        example: [123, 456, 789]
+                  errors:
+                    type: array
+                    items: {}
+                    example: []
+
+  /?action=vendor:favorites.Favorites.getProducts:
+    get:
+      operationId: favoritesGetProducts
+      summary: Получить данные избранных товаров
+      description: |
+        Возвращает массив товаров с их данными: ID, название, код,
+        путь к изображению превью.
+      tags:
+        - Избранное
+      parameters:
+        - name: sessid
+          in: query
+          required: true
+          description: CSRF-токен сессии Битрикс
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Данные товаров
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+                  errors:
+                    type: array
+                    items: {}
+                    example: []
+
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success]
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+        errors:
+          type: array
+          items: {}
+          example: []
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        data:
+          nullable: true
+          example: null
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiError'
+
+    ApiError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Текст ошибки
+        code:
+          type: string
+          description: Код ошибки
+          enum:
+            - INVALID_PRODUCT_ID
+            - PRODUCT_NOT_FOUND
+            - ALREADY_IN_FAVORITES
+            - NOT_IN_FAVORITES
+            - MODULE_DISABLED
+
+    Product:
+      type: object
+      properties:
+        ID:
+          type: integer
+          description: ID товара
+          example: 123
+        NAME:
+          type: string
+          description: Название товара
+          example: Ноутбук Lenovo ThinkPad X1
+        CODE:
+          type: string
+          description: Символьный код товара
+          example: lenovo-thinkpad-x1
+        PREVIEW_PICTURE:
+          type: string
+          nullable: true
+          description: Путь к превью-изображению
+          example: /upload/iblock/abc/image.jpg

@@ -1,0 +1,113 @@
+.vendor-favorites-btn {
+  --vf-size: 44px;
+  --vf-icon: 22px;
+  --vf-bg: rgba(255, 255, 255, 0.9);
+  --vf-fg: #0f172a;
+  --vf-border: rgba(15, 23, 42, 0.12);
+  --vf-accent: #e11d48;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: var(--vf-size);
+  height: var(--vf-size);
+  padding: 0;
+
+  border: 1px solid var(--vf-border);
+  border-radius: 999px;
+  background: var(--vf-bg);
+  color: var(--vf-fg);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vendor-favorites-btn {
+    --vf-bg: rgba(15, 23, 42, 0.85);
+    --vf-fg: #e2e8f0;
+    --vf-border: rgba(226, 232, 240, 0.18);
+  }
+}
+
+.vendor-favorites-btn:hover {
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.12);
+  transform: translateY(-1px);
+}
+
+.vendor-favorites-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.vendor-favorites-btn.is-loading {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.vendor-favorites-btn--small {
+  --vf-size: 36px;
+  --vf-icon: 20px;
+}
+
+.vendor-favorites-btn--medium {
+  --vf-size: 44px;
+  --vf-icon: 22px;
+}
+
+.vendor-favorites-btn--large {
+  --vf-size: 56px;
+  --vf-icon: 26px;
+}
+
+.vendor-favorites-btn__icon svg {
+  width: var(--vf-icon);
+  height: var(--vf-icon);
+  display: block;
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  transition: fill 200ms ease, color 200ms ease;
+}
+
+.vendor-favorites-btn.is-active {
+  color: var(--vf-accent);
+  border-color: rgba(225, 29, 72, 0.35);
+}
+
+.vendor-favorites-btn.is-active .vendor-favorites-btn__icon svg {
+  fill: currentColor;
+}
+
+.vendor-favorites-btn__counter {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--vf-accent);
+  color: #fff;
+  font: 600 11px/18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  box-shadow: 0 8px 18px rgba(225, 29, 72, 0.35);
+}
+
+.vendor-favorites-btn.is-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.55);
+  animation: vfPulse 450ms ease-out;
+  pointer-events: none;
+}
+
+@keyframes vfPulse {
+  0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.45); }
+  100% { box-shadow: 0 0 0 16px rgba(225, 29, 72, 0); }
+}
+
+
