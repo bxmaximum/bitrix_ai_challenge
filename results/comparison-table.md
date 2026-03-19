@@ -9,8 +9,9 @@
 | 🥇 1 | OpenAI: GPT-5.2 Рассуждающая | Рассуждающая | 94 | -5 | **89** | 14 мин | $1.20 | 4 |
 | 🥈 2 | Google: Gemini 3 Flash Preview | Рассуждающая | 76 | +3 | **79** | 3 мин | $0.12 | 2 |
 | 🥉 3 | OpenAI: GPT-5.4 | Рассуждающая | 89 | -11 | **78** | 12 мин | $4.92 | 8 |
-| 4 | Anthropic: Claude Opus 4.6 | Рассуждающая | 63 | -5 | **58** | 7 мин | $3.60 | 2 |
-| 5 | Anthropic: Claude Opus 4.5 | Рассуждающая | 66 | -12 | **54** | 7 мин | $5.00 | 5 |
+| 4 | Cursor: Composer 2 | Рассуждающая | 63 | -4 | **59** | 5 мин | $2.00 | 6 |
+| 5 | Anthropic: Claude Opus 4.6 | Рассуждающая | 63 | -5 | **58** | 7 мин | $3.60 | 2 |
+| 6 | Anthropic: Claude Opus 4.5 | Рассуждающая | 66 | -12 | **54** | 7 мин | $5.00 | 5 |
 
 
 ---
@@ -22,6 +23,7 @@
 | OpenAI: GPT-5.2 Рассуждающая | 10 | 7 | 10 | 9 | 10 | 10 | 7 | 8 | 10 | 8 | +4 | -0 | -5 |
 | Google: Gemini 3 Flash Preview | 10 | 8 | 9 | 9 | 10 | 3 | 0 | 8 | 10 | 9 | +0 | -0 | +3 |
 | OpenAI: GPT-5.4 | 9 | 5 | 10 | 8 | 10 | 9 | 5 | 10 | 10 | 9 | +6 | -5 | -11 |
+| Cursor: Composer 2 | 7 | 5 | 9 | 6 | 10 | 10 | 3 | 7 | 8 | 9 | +4 | -15 | -4 |
 | Anthropic: Claude Opus 4.6 | 6 | 3 | 10 | 7 | 7 | 8 | 6 | 7 | 7 | 8 | +4 | -10 | -5 |
 | Anthropic: Claude Opus 4.5 | 10 | 7 | 9 | 3 | 10 | 9 | 3 | 8 | 6 | 9 | +0 | -8 | -12 |
 
@@ -36,6 +38,7 @@
 | Claude Opus 4.5 | $5.00 | $25.00 | Thinking mode |
 | Claude Opus 4.6 | $5.00 | $25.00 | Thinking mode |
 | Google: Gemini 3 Flash Preview | $0.50 | $3.00 | Thinking mode |
+| Cursor: Composer 2 | $0.50 | $2.50 | Thinking mode |
 
 ---
 
