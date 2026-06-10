@@ -1,0 +1,163 @@
+/* vendor:favorites.button — современная минималистичная кнопка избранного */
+
+.vendor-favorites-btn {
+    --vf-color-idle: #9aa1ad;
+    --vf-color-active: #e8425a;
+    --vf-bg: #ffffff;
+    --vf-bg-hover: #f6f7f9;
+    --vf-border: #e3e6ea;
+    --vf-counter-color: #5b6270;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: 1px solid var(--vf-border);
+    border-radius: 999px;
+    background: var(--vf-bg);
+    color: var(--vf-color-idle);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+}
+
+/* Размеры */
+.vendor-favorites-btn--small {
+    height: 32px;
+    min-width: 32px;
+    padding: 0 8px;
+}
+
+.vendor-favorites-btn--small .vendor-favorites-btn__icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.vendor-favorites-btn--medium {
+    height: 42px;
+    min-width: 42px;
+    padding: 0 12px;
+}
+
+.vendor-favorites-btn--medium .vendor-favorites-btn__icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.vendor-favorites-btn--large {
+    height: 54px;
+    min-width: 54px;
+    padding: 0 16px;
+}
+
+.vendor-favorites-btn--large .vendor-favorites-btn__icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Иконка */
+.vendor-favorites-btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vendor-favorites-btn__heart {
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    transition: fill 0.25s ease, stroke 0.25s ease, transform 0.25s ease;
+    transform-origin: center;
+}
+
+/* Счётчик */
+.vendor-favorites-btn__counter {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--vf-counter-color);
+    transition: color 0.2s ease;
+}
+
+/* Hover / focus */
+.vendor-favorites-btn:hover {
+    background: var(--vf-bg-hover);
+    border-color: #d3d8de;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(20, 24, 33, 0.08);
+}
+
+.vendor-favorites-btn:focus-visible {
+    outline: 2px solid var(--vf-color-active);
+    outline-offset: 2px;
+}
+
+.vendor-favorites-btn:active {
+    transform: scale(0.95);
+}
+
+/* Активное состояние — товар в избранном */
+.vendor-favorites-btn.is-active {
+    color: var(--vf-color-active);
+    border-color: rgba(232, 66, 90, 0.35);
+}
+
+.vendor-favorites-btn.is-active .vendor-favorites-btn__heart {
+    fill: currentColor;
+    stroke: currentColor;
+}
+
+.vendor-favorites-btn.is-active .vendor-favorites-btn__counter {
+    color: var(--vf-color-active);
+}
+
+/* Анимация добавления */
+@keyframes vendor-favorites-pop {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.35); }
+    65% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.vendor-favorites-btn.is-animating .vendor-favorites-btn__heart {
+    animation: vendor-favorites-pop 0.45s ease;
+}
+
+/* Состояние загрузки */
+.vendor-favorites-btn.is-loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Тёмная тема: подхватывает prefers-color-scheme и класс .dark на html/body */
+@media (prefers-color-scheme: dark) {
+    .vendor-favorites-btn {
+        --vf-bg: #1d2129;
+        --vf-bg-hover: #262b35;
+        --vf-border: #343a46;
+        --vf-color-idle: #8b93a1;
+        --vf-counter-color: #aab1bd;
+    }
+}
+
+.dark .vendor-favorites-btn,
+[data-theme='dark'] .vendor-favorites-btn {
+    --vf-bg: #1d2129;
+    --vf-bg-hover: #262b35;
+    --vf-border: #343a46;
+    --vf-color-idle: #8b93a1;
+    --vf-counter-color: #aab1bd;
+}
+
+/* Адаптивность: на мобильных увеличиваем зону касания */
+@media (max-width: 640px) {
+    .vendor-favorites-btn--small {
+        height: 40px;
+        min-width: 40px;
+    }
+}
