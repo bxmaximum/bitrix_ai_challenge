@@ -1,36 +1,38 @@
 ---
 name: bitrix-modules
-description: Покрывает создание и сопровождение собственного модуля Bitrix в /local/modules/<vendor>.<module>/ — класс CModule, install/index.php, DoInstall и DoUninstall, install/version.php с $arModuleVersion, регистрация событий и агентов на установке, опции модуля (options.php), генерация через make:module. Применяется при создании нового модуля, доработке установки/удаления, регистрации обработчиков событий и публикации опций модуля в админке. Ключевые термины — CModule, DoInstall, DoUninstall, module manifest, install/index.php, make:module, vendor.module.
+description: Covers creation and maintenance of a custom Bitrix module in /local/modules/<vendor>.<module>/ — CModule class, install/index.php, DoInstall and DoUninstall, install/version.php with $arModuleVersion, registration of events and agents during installation, module options (options.php), generation via make:module. Applied when creating a new module, refining installation/uninstallation, registering event handlers and publishing module options in the Admin Panel. Key terms — CModule, DoInstall, DoUninstall, module manifest, install/index.php, make:module, vendor.module.
 ---
 
-# Модули Bitrix
+# Bitrix Modules
 
-## Идентификатор и неймспейс
+## Identifier and Namespace
 
-- Идентификатор: `<vendor>.<module>` (нижний регистр, без `_`, без цифры в начале).
-- Класс установщика: `<vendor>_<module>` (точка → `_`).
-- Неймспейс: `\<Vendor>\<Module>\...` (точка → `\`, CamelCase).
-- «Собственный» модуль без партнёрства — одно слово, например `mytest`, класс — `mytest`, неймспейс — `\Mytest`.
+- Identifier: `<vendor>.<module>` (lowercase, no `_`, no digit at start).
+- Installer class: `<vendor>_<module>` (dot → `_`).
+- Namespace: `\<Vendor>\<Module>\...` (dot → `\`, CamelCase).
+- "Own" module without partnership — a single word, e.g., `mytest`, class — `mytest`, namespace — `\Mytest`.
 
-## Быстрое создание
+## Quick Creation
 
 ```bash
 php bitrix/bitrix.php make:module vendor.module
 ```
 
-Команда создаст скелет с `install/index.php`, `version.php`, `lang/ru/install/index.php`, `.settings.php` и папкой `/lib/`. Доступно с main 25.900.0.
+The command creates a skeleton with `install/index.php`, `version.php`, `lang/en/install/index.php`, `.settings.php`, and a `/lib/` folder. Available from main 25.900.0.
 
-## Минимальный каркас
+## Minimal Structure
 
 ```
 /local/modules/vendor.module/
 ├── install/
 │   ├── index.php
 │   └── version.php
-├── lang/ru/install/index.php
+├── lang/en/install/index.php
 ├── lib/                         # PSR-4, Vendor\Module\...
+├── views/                       # PHP views for renderView() in controllers
+├── routes/                      # Module routing files
 ├── .settings.php                # controllers, services, console, routing
-└── include.php                  # опционально, для registerNamespace/registerAutoLoadClasses
+└── include.php                  # optional, for registerNamespace/registerAutoLoadClasses
 ```
 
 ## `install/version.php`
@@ -45,7 +47,7 @@ $arModuleVersion = [
 
 ## `install/index.php`
 
-Наследуемся от `CModule`, реализуем `DoInstall`/`DoUninstall`. Базовый шаблон:
+Inherit from `CModule`, implement `DoInstall`/`DoUninstall`. Base template:
 
 ```php
 <?php
@@ -111,7 +113,7 @@ final class vendor_module extends CModule
 
     private function installDb(): void
     {
-        // Создание таблиц через ORM Entity:
+        // Table creation via ORM Entity:
         // \Vendor\Module\Model\PostTable::getEntity()->createDbTable();
     }
 
@@ -178,62 +180,77 @@ final class vendor_module extends CModule
 }
 ```
 
-## Языковые файлы
+## Language Files
 
-`/local/modules/vendor.module/lang/ru/install/index.php`:
+`/local/modules/vendor.module/lang/en/install/index.php`:
 
 ```php
 <?php
-$MESS['VENDOR_MODULE_NAME'] = 'Vendor. Module';
-$MESS['VENDOR_MODULE_DESCRIPTION'] = 'Описание модуля';
+$MESS['VENDOR_MODULE_NAME'] = 'Vendor Module';
+$MESS['VENDOR_MODULE_DESCRIPTION'] = 'Module description';
 ```
 
-## Таблицы БД
+## DB Tables
 
-Не пиши сырой SQL для создания таблиц. Опиши сущность в `/lib/Model/PostTable.php` и создавай таблицу через ORM:
+Do not use raw SQL for table creation. Describe the entity in `/lib/Model/PostTable.php` and create the table via ORM:
 
 ```php
 \Bitrix\Main\Loader::includeModule('vendor.module');
 \Vendor\Module\Model\PostTable::getEntity()->createDbTable();
 ```
 
-Для удаления:
+For deletion:
 
 ```php
-\Bitrix\Main\Application::getConnection()->dropTable(
-    \Vendor\Module\Model\PostTable::getTableName()
-);
+\Bitrix\Main\Application::getConnection()->dropTable(PostTable::getTableName());
 ```
 
-## `.settings.php` модуля
+## Module Options (`options.php`)
 
-Минимум, чтобы работали контроллеры:
+If you need a settings page in Admin Panel (*Settings → Module Settings → Vendor Module*):
 
 ```php
 <?php
-return [
-    'controllers' => [
-        'value' => [
-            'defaultNamespace' => '\\Vendor\\Module\\Infrastructure\\Controller',
-        ],
-        'readonly' => true,
-    ],
+/** @var CMain $APPLICATION */
+/** @var string $mid */ // module id
+
+use Bitrix\Main\Config\Option;
+use Bitrix\Main\Localization\Loc;
+
+$options = [
+    ['api_key', Loc::getMessage('VENDOR_API_KEY'), '', ['text', 40]],
+    ['debug_mode', Loc::getMessage('VENDOR_DEBUG'), 'N', ['checkbox', 'Y']],
 ];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && check_bitrix_sessid())
+{
+    foreach ($options as $opt)
+    {
+        $val = $_POST[$opt[0]] ?? $opt[2];
+        Option::set($mid, $opt[0], $val);
+    }
+}
+
+// ... display via CAdminTabControl
 ```
 
-Добавляй секции `services`, `console`, `routing` по мере необходимости — см. скиллы `bitrix-service-locator`, `bitrix-console-commands`, `bitrix-routing`.
+## PSR-4 Autoloading
 
-## Установка и удаление
+Nothing needs to be registered manually in `include.php` if:
+1. Module is in `/local/modules/vendor.module/`.
+2. Classes are in `/lib/`.
+3. Namespace follows `\Vendor\Module\...`.
 
-- **Собственные модули**: *Настройки → Настройки продукта → Модули*.
-- **Партнёрские**: *Marketplace → Установленные решения*.
-- Программно: `\Bitrix\Main\ModuleManager::registerModule('vendor.module')` / `unRegisterModule`.
+Bitrix `Loader` handles this automatically when `includeModule` is called.
 
-## Чеклист качественного модуля
+## Checklist
 
-- [ ] `install/index.php` идемпотентен: повторная установка не ломает систему.
-- [ ] В `DoUninstall` снимаются **все** обработчики событий, добавленные на `DoInstall`.
-- [ ] Таблицы создаются через ORM, колонки — через `addField`/миграции.
-- [ ] Неймспейс соответствует идентификатору и PSR-4-структуре папок `/lib/`.
-- [ ] Добавлен `.settings.php` с нужными секциями.
-- [ ] Публикуемые сущности (события, сервисы) выделены в `Public/`, внутренние — в `Internals/`.
+- [ ] Module identifier follows `vendor.module` format.
+- [ ] `DoInstall`/`DoUninstall` are implemented and idempotent.
+- [ ] Event handlers and agents are registered upon installation and removed upon uninstallation.
+- [ ] DB tables are managed via ORM or `SqlHelper` (DDL).
+- [ ] Language files are mirrored in `lang/ru/` and `lang/en/`.
+- [ ] Services and controllers are registered in `.settings.php`.
+- [ ] No hardcoded strings in `index.php` (use `Loc`).
+- [ ] Module is compatible with PSR-4.
+- [ ] Files are copied to `/local/`, not `/bitrix/`.

@@ -1,31 +1,31 @@
 ---
 name: bitrix-validation
-description: "Покрывает валидацию входных данных в Bitrix — ValidationService, атрибуты #[NotEmpty], #[Email], #[Length], #[Range], #[Regex], Request DTO с #[ValidationParameter], кастомные валидаторы на базе ValidatorInterface, агрегация ошибок в ErrorCollection. Применяется при проверке входа контроллеров, сервисов и CLI-команд, валидации форм, DTO и параметров action-методов. Ключевые термины — ValidationService, NotEmpty, Email, Length, ValidationParameter, Request DTO, validator, constraint."
+description: "Covers input data validation in Bitrix — ValidationService, attributes #[NotEmpty], #[Email], #[Length], #[Range], #[Regex], Request DTO with #[ValidationParameter], custom validators based on ValidatorInterface, aggregation of errors in ErrorCollection. Applied when checking input of controllers, services and CLI commands, validation of forms, DTO and action method parameters. Key terms — ValidationService, NotEmpty, Email, Length, ValidationParameter, Request DTO, validator, constraint."
 ---
 
-# Валидация в Bitrix
+# Validation in Bitrix
 
-Сервис `Bitrix\Main\Validation\ValidationService` валидирует объекты по атрибутам PHP 8. Любой объект с типизированными свойствами можно проверить и получить `ValidationResult` со списком ошибок.
+The `Bitrix\Main\Validation\ValidationService` service validates objects using PHP 8 attributes. Any object with typed properties can be checked to obtain a `ValidationResult` with a list of errors.
 
-## Атрибуты первого уровня
+## First-level Attributes
 
-| Атрибут | Что проверяет |
+| Attribute | What it checks |
 | --- | --- |
-| `#[NotEmpty]` | Не пусто (`!empty`) |
-| `#[Length(min, max)]` | Длина строки |
-| `#[Min(n)]` / `#[Max(n)]` / `#[Range(min, max)]` | Числовые ограничения |
-| `#[PositiveNumber]` | Число > 0 |
-| `#[Email]` / `#[Phone]` / `#[PhoneOrEmail]` | Формат |
-| `#[Url]` | URL (с опциональными схемами) |
-| `#[RegExp('/pattern/')]` | Регулярное выражение |
-| `#[Json]` | Строка — валидный JSON |
-| `#[Validatable]` | Рекурсивно валидировать вложенный объект |
-| `#[ElementsType(Type::class)]` | Тип элементов коллекции/массива |
-| `#[AtLeastOnePropertyNotEmpty(['name', 'email'])]` | Минимум одно из полей заполнено (на классе) |
+| `#[NotEmpty]` | Not empty (`!empty`) |
+| `#[Length(min, max)]` | String length |
+| `#[Min(n)]` / `#[Max(n)]` / `#[Range(min, max)]` | Numeric constraints |
+| `#[PositiveNumber]` | Number > 0 |
+| `#[Email]` / `#[Phone]` / `#[PhoneOrEmail]` | Format |
+| `#[Url]` | URL (with optional schemes) |
+| `#[RegExp('/pattern/')]` | Regular expression |
+| `#[Json]` | String is valid JSON |
+| `#[Validatable]` | Recursively validate nested object |
+| `#[ElementsType(Type::class)]` | Type of collection/array elements |
+| `#[AtLeastOnePropertyNotEmpty(['name', 'email'])]` | At least one of the fields is filled (on class) |
 
-Каждый атрибут принимает необязательный `message` для кастомного текста ошибки.
+Each attribute accepts an optional `message` for a custom error text.
 
-## DTO с атрибутами
+## DTO with Attributes
 
 ```php
 <?php declare(strict_types=1);
@@ -52,7 +52,7 @@ final class CreateUserDto
 }
 ```
 
-## Прямая валидация в сервисе
+## Direct Validation in Service
 
 ```php
 use Bitrix\Main\Validation\ValidationService;
@@ -87,11 +87,11 @@ final class UserService
 }
 ```
 
-`ValidationService` берётся из `ServiceLocator` по FQCN (зарегистрирован ядром).
+`ValidationService` is retrieved from `ServiceLocator` by FQCN (registered by the kernel).
 
-## Request DTO в контроллере (`#[ValidationParameter]`)
+## Request DTO in Controller (`#[ValidationParameter]`)
 
-Движок контроллеров умеет сам создавать DTO из `GET`/`POST` и валидировать его.
+The controller engine can automatically create a DTO from `GET`/`POST` and validate it.
 
 ```php
 use Bitrix\Main\Engine\Controller;
@@ -102,8 +102,8 @@ final class Post extends Controller
     public function createAction(
         #[ValidationParameter] CreatePostRequest $request,
     ): array {
-        // Сюда мы попадаем, только если валидация прошла успешно.
-        // Иначе контроллер вернёт errors автоматически.
+        // We only get here if validation was successful.
+        // Otherwise, the controller will return errors automatically.
         $result = $this->postService->create($request);
 
         if (!$result->isSuccess())
@@ -134,9 +134,24 @@ final class CreatePostRequest
 }
 ```
 
-Генерация: `php bitrix/bitrix.php make:request CreatePost -m vendor.blog --fields=title,body`.
+Generation: `php bitrix/bitrix.php make:request CreatePost -m vendor.blog --fields=title,body`.
 
-## Коллекции
+## Class-Level Attributes
+
+```php
+use Bitrix\Main\Validation\Rule\AtLeastOnePropertyNotEmpty;
+
+#[AtLeastOnePropertyNotEmpty(['email', 'phone'])]
+final readonly class ContactRequest
+{
+    public function __construct(
+        public ?string $email = null,
+        public ?string $phone = null,
+    ) {}
+}
+```
+
+## Collections
 
 ```php
 use Bitrix\Main\Validation\Rule\Validatable;
@@ -153,9 +168,9 @@ final class OrderDto
 }
 ```
 
-## Кастомный валидатор
+## Custom Validator
 
-1. Реализуй `Bitrix\Main\Validation\Rule\Rule` + соответствующий валидатор `Bitrix\Main\Validation\ValidatorInterface`:
+1. Implement `Bitrix\Main\Validation\Rule\Rule` + corresponding validator `Bitrix\Main\Validation\ValidatorInterface`:
 
     ```php
     #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::IS_REPEATABLE)]
@@ -181,7 +196,7 @@ final class OrderDto
     }
     ```
 
-2. Зарегистрируй пару rule→validator в `.settings.php` модуля:
+2. Register the rule→validator pair in the module's `.settings.php`:
 
     ```php
     'validation' => [
@@ -195,32 +210,20 @@ final class OrderDto
     ],
     ```
 
-## Получение результата валидации
+## Retrieving Validation Result
 
-```php
-$validation = $validator->validate($dto);
+The `ValidationResult` object contains a list of `ValidationError`. Each error has:
+- `getMessage()`: localized message.
+- `getCode()`: error code (e.g., `NOT_EMPTY`).
+- `getField()`: property name that failed validation.
+- `getRule()`: rule instance.
 
-if ($validation->isSuccess()) { /* ok */ }
+## Checklist
 
-foreach ($validation->getErrors() as $error)
-{
-    $error->getField();    // имя свойства
-    $error->getMessage();  // текст
-    $error->getCode();     // код правила
-    $error->getValue();    // исходное значение
-}
-```
-
-## Антипаттерны
-
-- Проверки вида `if (empty($request['title']))` в контроллере/сервисе — вместо атрибутов.
-- Возврат исключения `InvalidArgumentException` для пользовательской ошибки — возвращай `Result` с `Error`.
-- Валидация только на фронте без серверной проверки.
-- Дублирование правил в разных местах — вынеси в общий DTO и переиспользуй.
-
-## Чек-лист
-
-- [ ] Пользовательский ввод контроллера описан Request-DTO и валидируется через `#[ValidationParameter]`.
-- [ ] Сервисы, принимающие DTO от других слоёв, сами не валидируют тот же DTO — валидация выполняется один раз на границе.
-- [ ] Ошибки содержат `code` (`EMAIL_INVALID`, `POST_TITLE_EMPTY`), пригодный для фронта.
-- [ ] Кастомные правила зарегистрированы в `.settings.php` и покрыты юнит-тестом.
+- [ ] Validation is handled via PHP 8 attributes.
+- [ ] DTOs are used for complex input structures.
+- [ ] `#[ValidationParameter]` is used in controllers to automate DTO creation and validation.
+- [ ] Custom rules and validators are registered in `.settings.php`.
+- [ ] Error messages are localized or descriptive.
+- [ ] `ValidationService` is retrieved from `ServiceLocator`.
+- [ ] Collections are validated recursively using `#[Validatable]` and `#[ElementsType]`.

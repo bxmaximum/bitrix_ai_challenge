@@ -1,32 +1,32 @@
 ---
 name: bitrix-caching
-description: Покрывает кеширование в Bitrix — Cache (неуправляемый), ManagedCache, TaggedCache, автокеш ORM, кеш компонентов через startResultCache/endResultCache, композитный сайт, настройка cache engine (files, memcached, redis) в .settings.php. Применяется при оптимизации производительности, инвалидации по тегам и событиям, настройке TTL, cache warm-up и отладке попаданий в кеш. Ключевые термины — cache, invalidate, TaggedCache, ManagedCache, startResultCache, cacheDir, clean.
+description: Covers caching in Bitrix — Cache (unmanaged), ManagedCache, TaggedCache, ORM auto-cache, component cache via startResultCache/endResultCache, Composite Site, cache engine configuration (files, memcached, redis) in .settings.php. Applied when optimizing performance, invalidating by tags and events, setting TTL, cache warm-up, and debugging cache hits. Key terms — cache, invalidate, TaggedCache, ManagedCache, startResultCache, cacheDir, clean.
 ---
 
-# Кеширование в Bitrix
+# Caching in Bitrix
 
-## Уровни кеша
+## Cache Levels
 
-1. **Неуправляемый кеш** (`Bitrix\Main\Data\Cache`) — с TTL, ключом и путём. Сбрасывается сам по TTL и вручную.
-2. **Управляемый кеш** (`ManagedCache`) — живёт до явной инвалидации, удобен для «редко меняющихся» данных.
-3. **Теговый кеш** (`TaggedCache`) — ключи группируются тегами; инвалидация одного тега сбрасывает все привязанные записи.
-4. **Кеш ORM** — автоматический: `isCacheable()` у таблета + `['cache' => ['ttl' => ...]]` в `getList`.
-5. **Кеш компонентов** — через `startResultCache()` / `endResultCache()` и параметры `CACHE_TYPE`, `CACHE_TIME`, `CACHE_GROUPS`.
-6. **Composite-кеш** — HTML-кеш страницы целиком (`Bitrix\Main\Composite\Engine`).
+1. **Unmanaged Cache** (`Bitrix\Main\Data\Cache`) — with TTL, key, and path. Cleared automatically by TTL and manually.
+2. **Managed Cache** (`ManagedCache`) — lives until explicit invalidation, convenient for "rarely changing" data.
+3. **Tagged Cache** (`TaggedCache`) — keys are grouped by tags; invalidating one tag clears all associated entries.
+4. **ORM Cache** — automatic: `isCacheable()` in the tablet + `['cache' => ['ttl' => ...]]` in `getList`.
+5. **Component Cache** — via `startResultCache()` / `endResultCache()` and parameters `CACHE_TYPE`, `CACHE_TIME`, `CACHE_GROUPS`.
+6. **Composite Cache** — HTML cache of the entire page (`Bitrix\Main\Composite\Engine`).
 
-## Конфигурация `.settings.php`
+## Configuration in `.settings.php`
 
 ```php
 'cache' => [
     'value' => [
         'type' => [
-            // 'class_name' => \Bitrix\Main\Data\CacheEngineRedis::class, // одно из
+            // 'class_name' => \Bitrix\Main\Data\CacheEngineRedis::class, // one of these
             'type' => 'redis',     // files|memcache|redis|apc|xcache|none
             'host' => '127.0.0.1',
             'port' => 6379,
             'serializer' => \Redis::SERIALIZER_IGBINARY,
         ],
-        'sid' => 'PROJECT_',       // префикс ключей
+        'sid' => 'PROJECT_',       // key prefix
         'cache_flags' => [
             'config_options' => 3600,
             'site_template' => 3600,
@@ -37,9 +37,9 @@ description: Покрывает кеширование в Bitrix — Cache (не
 ],
 ```
 
-Разные секции (`config_options`, `menu`, `site_template`, ) задают TTL для внутренних кешей ядра.
+Different sections (`config_options`, `menu`, `site_template`, etc.) define TTL for internal kernel caches.
 
-## Неуправляемый кеш — шаблон
+## Unmanaged Cache Template
 
 ```php
 $cache = \Bitrix\Main\Data\Cache::createInstance();
@@ -58,7 +58,7 @@ elseif ($cache->startDataCache())
         'select' => ['ID', 'TITLE'],
     ])->fetchAll();
 
-    // Если условия не подходят — прекратить записывать кеш:
+    // If conditions are not met — stop writing cache:
     if (empty($data))
     {
         $cache->abortDataCache();
@@ -70,10 +70,10 @@ elseif ($cache->startDataCache())
 }
 ```
 
-- `cacheId` — уникальный ключ, включает все переменные, влияющие на результат.
-- `cacheDir` — «папка» кеша; удобно сбрасывать по директории `$cache->cleanDir($cacheDir)`.
+- `cacheId` — unique key, includes all variables affecting the result.
+- `cacheDir` — cache "folder"; convenient to clear by directory `$cache->cleanDir($cacheDir)`.
 
-## Управляемый кеш
+## Managed Cache
 
 ```php
 $managed = \Bitrix\Main\Application::getInstance()->getManagedCache();
@@ -85,15 +85,15 @@ if ($managed->read(86400, $cacheId, 'posts'))
 else
 {
     $data = $this->fetchExpensive();
-    $managed->setImmediate($cacheId, $data); // или set() — запись в конце запроса
+    $managed->setImmediate($cacheId, $data); // or set() — write at the end of request
 }
 
-// Инвалидация:
+// Invalidation:
 $managed->clean($cacheId, 'posts');
 $managed->cleanDir('posts');
 ```
 
-## Теги
+## Tags
 
 ```php
 use Bitrix\Main\Application;
@@ -105,19 +105,19 @@ $taggedCache->registerTag('posts_list');
 $taggedCache->registerTag('post_42');
 $taggedCache->endTagCache();
 
-// Инвалидация тега — сбросит все записи, зарегистрированные под этим тегом:
+// Tag invalidation — clears all entries registered under this tag:
 $taggedCache->clearByTag('posts_list');
 ```
 
-### Теги ORM
+### ORM Tags
 
-Любой `*Table`-класс с `isCacheable() === true` автоматически публикует тег `ORM_<TABLE_NAME>` при записи. Это позволяет привязать зависимые HTML-кеши к таблице:
+Any `*Table` class with `isCacheable() === true` automatically publishes the tag `ORM_<TABLE_NAME>` upon write. This allows linking dependent HTML caches to the table:
 
 ```php
-$taggedCache->registerTag('ORM_VENDOR_MODULE_POST'); // при изменении таблицы кеш сбросится
+$taggedCache->registerTag('ORM_VENDOR_MODULE_POST'); // cache will clear when table changes
 ```
 
-## Кеш запросов ORM
+## ORM Query Cache
 
 ```php
 PostTable::getList([
@@ -125,16 +125,16 @@ PostTable::getList([
     'filter' => ['=ACTIVE' => 'Y'],
     'cache'  => [
         'ttl' => 3600,
-        'cache_joins' => true, // кешировать JOIN-запросы
+        'cache_joins' => true, // cache JOIN queries
     ],
 ]);
 ```
 
-Сброс: `PostTable::cleanCache()`.
+Reset: `PostTable::cleanCache()`.
 
-## Кеш компонентов
+## Component Cache
 
-В `class.php` / `component.php`:
+In `class.php` / `component.php`:
 
 ```php
 if ($this->startResultCache(false, [
@@ -147,39 +147,63 @@ if ($this->startResultCache(false, [
 }
 ```
 
-Параметры компонента, управляющие кешем:
+Component parameters controlling cache:
 
-- `CACHE_TYPE`: `A` (автокеш), `Y`, `N`.
-- `CACHE_TIME`: TTL в секундах.
-- `CACHE_GROUPS`: `Y` — ключ зависит от групп пользователя.
+- `CACHE_TYPE`: `A` (autocache), `Y`, `N`.
+- `CACHE_TIME`: TTL in seconds.
+- `CACHE_GROUPS`: `Y` — key depends on user groups.
 
-## Composite-кеш
+## Composite Cache
 
-Для композита — включи модуль `compression` и добавь в нужные компоненты:
+For composite — enable the `compression` module and add to required components:
 
 ```php
 \CBitrixComponent::includeComponentClass($componentName);
 \Bitrix\Main\Page\Asset::getInstance()->addString(...);
 ```
 
-Учитывай ограничения композита: динамические блоки помечаются через `$APPLICATION->SetPageProperty('composite_frame_mode', 'Y')` / `setFrameMode`, личные данные не должны попадать в статическую часть, AJAX-компоненты (`composite:banner` и пр.) вычитываются отдельным запросом.
+Consider composite constraints: dynamic blocks are marked via `$APPLICATION->SetPageProperty('composite_frame_mode', 'Y')` / `setFrameMode`, personal data should not be in the static part, AJAX components are fetched with a separate request.
 
-## Инвалидация по событиям
+### Composite zones and NGINX
 
-Типичная схема: обработчик `OnAfterUpdate`/`OnAfter*` у таблета вызывает `$taggedCache->clearByTag(...)`. Используй новые события ORM через `EventResult` вместо `$GLOBALS['USER_FIELD_MANAGER']->...`.
+- Static zone — full page HTML cache.
+- Dynamic zone (`data-dynamic`) — refreshed via AJAX on each hit.
+- Autocomposite vs manual composite — configure in Admin → Composite settings.
+- NGINX can serve static composite files directly; configure composite pool path (BitrixVM: *Configure nginx to use composite cache*).
 
-## Антипаттерны
+For ORM/SQL optimization see skill `bitrix-performance`.
 
-- Кеширование «живых» данных (балансы, остатки) с большим TTL без инвалидации.
-- Использование глобальных `$_SESSION`/`$USER` внутри ключа кеша вместо явных переменных.
-- Один общий `cacheDir` на все модули — трудно чистить прицельно.
-- Отсутствие `abortDataCache()` при пустых/ошибочных результатах.
-- Включение `composite` без тестирования динамических блоков.
+```php
+'cache' => [
+    'value' => [
+        'type' => [
+            'class_name' => \Bitrix\Main\Data\CacheEngineRedis::class,
+            'extension' => 'redis',
+            'host' => '127.0.0.1',
+            'port' => 6379,
+        ],
+    ],
+],
+```
 
-## Чек-лист
+For ORM/SQL optimization see skill `bitrix-performance`.
 
-- [ ] Подобран уровень кеша: краткоживущий → неуправляемый; редко меняющийся и критичный → управляемый + теги.
-- [ ] Ключ кеша включает все параметры, влияющие на результат (фильтры, язык, права).
-- [ ] Инвалидация кеша автоматизирована через теги/события, а не `cleanDir('/')` вручную.
-- [ ] Компонентный кеш учитывает группы пользователя, где это важно.
-- [ ] Production-окружение использует Redis/Memcached, а не файловый кеш.
+## Invalidation by Events
+
+Typical scheme: `OnAfterUpdate`/`OnAfter*` handler in the tablet calls `$taggedCache->clearByTag(...)`. Use new ORM events via `EventResult` instead of `$GLOBALS['USER_FIELD_MANAGER']->...`.
+
+## Antipatterns
+
+- Caching "live" data (balances, stock levels) with high TTL without invalidation.
+- Using global `$_SESSION`/`$USER` inside the cache key instead of explicit variables.
+- One shared `cacheDir` for all modules — hard to clear selectively.
+- Missing `abortDataCache()` for empty/error results.
+- Enabling `composite` without testing dynamic blocks.
+
+## Checklist
+
+- [ ] Cache level selected: short-lived → unmanaged; rarely changing and critical → managed + tags.
+- [ ] Cache key includes all parameters affecting the result (filters, language, permissions).
+- [ ] Cache invalidation is automated via tags/events, not manual `cleanDir('/')`.
+- [ ] Component cache accounts for user groups where important.
+- [ ] Production environment uses Redis/Memcached instead of file cache.

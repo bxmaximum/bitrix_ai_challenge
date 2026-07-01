@@ -1,18 +1,18 @@
 ---
 name: bitrix-controllers
-description: Покрывает контроллеры D7 на базе Bitrix\Main\Engine\Controller и JsonController — actions, автосвязывание параметров, фильтры ActionFilter (Authentication, Csrf, HttpMethod, Scope, CloseSession, ContentType), ошибки через addError/ErrorCollection, configureActions, рендер и JSON-ответы. Применяется при реализации AJAX/REST-эндпоинтов, внутренних API и ajax-экшенов компонентов через Controllerable. Ключевые термины — Controller, action, ActionFilter, Csrf, runAction, addError, configureActions, ajax endpoint, REST.
+description: Covers D7 controllers based on Bitrix\Main\Engine\Controller and JsonController — actions, parameter autowiring, ActionFilter filters (Authentication, Csrf, HttpMethod, Scope, CloseSession, ContentType), errors via addError/ErrorCollection, configureActions, rendering and JSON responses. Applied when implementing AJAX/REST endpoints, internal APIs and component ajax actions via Controllerable. Key terms — Controller, action, ActionFilter, Csrf, runAction, addError, configureActions, ajax endpoint, REST.
 ---
 
-# Контроллеры Bitrix
+# Bitrix Controllers
 
-## Где лежат и как называются
+## Location and Naming
 
-- Файлы: `/local/modules/<vendor>.<module>/lib/Infrastructure/Controller/<Name>.php`.
-- Неймспейс (по умолчанию): `\Vendor\Module\Infrastructure\Controller\<Name>`.
-- Публичный URL для AJAX: `/bitrix/services/main/ajax.php?action=vendor:module.<name>.<action>`.
-- URL можно переписать маршрутом (см. `bitrix-routing`).
+- Files: `/local/modules/<vendor>.<module>/lib/Infrastructure/Controller/<Name>.php`.
+- Namespace (default): `\Vendor\Module\Infrastructure\Controller\<Name>`.
+- Public URL for AJAX: `/bitrix/services/main/ajax.php?action=vendor:module.<name>.<action>`.
+- URL can be rewritten by a route (see `bitrix-routing`).
 
-Настройка пространства имён — в `/local/modules/vendor.module/.settings.php`:
+Namespace configuration — in `/local/modules/vendor.module/.settings.php`:
 
 ```php
 'controllers' => [
@@ -21,15 +21,15 @@ description: Покрывает контроллеры D7 на базе Bitrix\M
         'namespaces' => [
             '\\Vendor\\Module\\Infrastructure\\Controller\\Web' => 'web',
         ],
-        'restIntegration' => ['enabled' => true], // для REST
+        'restIntegration' => ['enabled' => true], // for REST
     ],
     'readonly' => true,
 ],
 ```
 
-Доступ к `Web\PostController::getAction` → `?action=vendor:module.web.post.get`.
+Access to `Web\PostController::getAction` → `?action=vendor:module.web.post.get`.
 
-## Минимальный контроллер
+## Minimal Controller
 
 ```php
 <?php declare(strict_types=1);
@@ -54,7 +54,7 @@ final class Post extends Controller
         return [
             'get' => [
                 '+prefilters' => [new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_GET])],
-                '-prefilters' => [ActionFilter\Csrf::class], // GET без CSRF
+                '-prefilters' => [ActionFilter\Csrf::class], // GET without CSRF
             ],
             'create' => [
                 '+prefilters' => [
@@ -92,58 +92,74 @@ final class Post extends Controller
 }
 ```
 
-## Автосвязывание параметров действий
+## Action Parameter Autowiring
 
-Параметры действия собираются движком в следующем порядке:
+Action parameters are collected by the engine in the following order:
 
-1. **Скалярные типы** (`int`, `string`, `bool`, `float`, `array`) → из `GET`/`POST`/`FILES`.
-2. **Объекты-сервисы** → из `ServiceLocator` по имени/типу.
-3. **`HttpRequest`, `Session`, `CurrentUser`** → из контекста.
-4. **Request DTO** с атрибутом `#[Bitrix\Main\Validation\Engine\ValidationParameter]` → маппинг из запроса + валидация (см. `bitrix-validation`).
-5. **ORM-объекты**, если действие принимает `EntityObject` — загружаются по `id`.
+1. **Scalar types** (`int`, `string`, `bool`, `float`, `array`) → from `GET`/`POST`/`FILES`.
+2. **Service objects** → from `ServiceLocator` by name/type.
+3. **`HttpRequest`, `Session`, `CurrentUser`** → from context.
+4. **Request DTO** with `#[Bitrix\Main\Validation\Engine\ValidationParameter]` attribute → mapping from request + validation (see `bitrix-validation`).
+5. **ORM objects**, if the action accepts `EntityObject` — loaded by `id`.
 
-Отсутствие обязательного параметра → автоматическая ошибка.
+Missing mandatory parameter → automatic error.
 
-## Фильтры действий
+## Controller Lifecycle
 
-Предустановленные:
+1. Constructor (DI via `ServiceLocator`).
+2. `init()` — load modules, initialize services (`parent::init()` first).
+3. Prefilters run.
+4. Action method executes.
+5. Postfilters run.
+6. Response is serialized.
 
-- `ActionFilter\Authentication` — требует авторизованного пользователя.
-- `ActionFilter\Csrf` (по умолчанию включён на `POST`) — проверка `sessid`/`X-Bitrix-Csrf-Token`.
-- `ActionFilter\HttpMethod([...])` — ограничение по методу.
-- `ActionFilter\CloseSession` — закрывает сессию перед действием (параллельные AJAX).
-- `ActionFilter\ContentType(['application/json'])` — допустимый `Content-Type`.
-- `ActionFilter\Scope($scope)` — ограничивает вызов конкретным scope (ajax/rest/cli).
+`executeComponent()` in component controllers does **not** run during AJAX actions — use `onPrepareComponentParams()` for shared setup.
 
-Формат в `configureActions()`:
+## Default Prefilters
+
+By default, actions get: `HttpMethod` (GET only), `Authentication`, `Csrf` (for POST). Override per action as needed.
+
+## Action Filters
+
+Predefined filters:
+
+- `ActionFilter\Authentication` — requires an authorized user (401 without redirect).
+- `ActionFilter\Csrf` — `sessid`/`X-Bitrix-Csrf-Token` check (on by default for POST).
+- `ActionFilter\HttpMethod([...])` — method restriction.
+- `ActionFilter\CloseSession` — closes session before action (parallel AJAX).
+- `ActionFilter\ContentType(['application/json'])` — allowed `Content-Type`.
+- `ActionFilter\Scope($scope)` — restricts call to a specific scope (ajax/rest/cli).
+- `ActionFilter\Cors` — CORS headers for cross-origin AJAX.
+
+### `configureActions()` format
 
 ```php
 'default' => [
-    'prefilters' => [...],   // полностью заменить список
-    '+prefilters' => [...],  // добавить
-    '-prefilters' => [...],  // удалить (по FQCN)
+    'prefilters' => [...],   // replace the list entirely
+    '+prefilters' => [...],  // add
+    '-prefilters' => [...],  // remove (by FQCN)
     'postfilters' => [...],
 ],
 ```
 
-## Ошибки
+## Errors
 
 - `$this->addError(new \Bitrix\Main\Error('msg', 'CODE', ['key' => 'value']));`
 - `$this->addErrors($result->getErrors());`
-- Никогда не бросай исключения наружу ради «обычных» пользовательских ошибок — они ухудшают UX и сложнее тестируются. Используй `Result` + `Error`.
-- Ответ с ошибками автоматически получает `status: 'error'` и массив `errors`.
+- Never throw exceptions outward for "ordinary" user errors — they worsen UX and are harder to test. Use `Result` + `Error`.
+- Response with errors automatically receives `status: 'error'` and `errors` array.
 
-## Типы ответов
+## Response Types
 
 - `array` → JSON: `{ "status": "success", "data": [...] }`.
-- `null` → `{ "status": "success" }` без данных.
-- `Bitrix\Main\HttpResponse` — кастомный ответ (заголовки, статус, тело).
+- `null` → `{ "status": "success" }` without data.
+- `Bitrix\Main\HttpResponse` — custom response (headers, status, body).
 - `Bitrix\Main\Engine\Response\Html` / `Json` / `Redirect` / `AjaxJson`.
-- `Bitrix\Main\Engine\Response\Component` — рендер компонента.
-- `Bitrix\Main\Engine\Response\Component\Ajax` — JSON + рендер компонента.
-- `Bitrix\Main\Engine\Response\BFile` / `File` / `HttpResponseFile` — отдача файла.
+- `Bitrix\Main\Engine\Response\Component` — component render.
+- `Bitrix\Main\Engine\Response\Component\Ajax` — JSON + component render.
+- `Bitrix\Main\Engine\Response\BFile` / `File` / `HttpResponseFile` — file delivery.
 
-Помощники контроллера:
+Controller helpers:
 
 ```php
 return $this->renderView('list', ['items' => $items]);
@@ -156,11 +172,11 @@ return $this->renderExtension('vendor.post.list', ['items' => $items]);
 
 ## Scope (AJAX / REST / CLI)
 
-- **AJAX**: вызов через `/bitrix/services/main/ajax.php?action=...` или `BX.ajax.runAction('...', {})` из JS. Автоматически доступен если контроллер объявлен и есть `controllers` в `.settings.php`.
-- **REST**: требуется `restIntegration.enabled = true` в настройках + установленный модуль `rest`.
-- **CLI**: контроллер можно вызвать из команды, если есть `ActionFilter\Scope`.
+- **AJAX**: call via `/bitrix/services/main/ajax.php?action=...` or `BX.ajax.runAction('...', {})` from JS. Automatically available if controller is declared and `controllers` exists in `.settings.php`.
+- **REST**: requires `restIntegration.enabled = true` in settings + `rest` module installed.
+- **CLI**: controller can be called from a command if `ActionFilter\Scope` is present.
 
-Разные сценарии — разные наборы фильтров. Пример переопределения по scope:
+Different scenarios — different sets of filters. Example of overriding by scope:
 
 ```php
 public function configureActions(): array
@@ -176,7 +192,43 @@ public function configureActions(): array
 }
 ```
 
-## Вызов с фронта
+## PHP 8 Attribute Filters
+
+Alternative to `configureActions()` — apply filters via attributes on action methods:
+
+```php
+use Bitrix\Main\Engine\ActionFilter\Attribute\Rule\Prefilters;
+use Bitrix\Main\Engine\ActionFilter\Attribute\Rule\HttpMethod;
+use Bitrix\Main\Engine\ActionFilter\Attribute\Rule\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Attribute\Rule\Csrf;
+use Bitrix\Main\Engine\ActionFilter\Attribute\Rule\DisablePrefilters;
+
+final class Post extends Controller
+{
+    #[Prefilters([
+        new ActionFilter\HttpMethod([ActionFilter\HttpMethod::METHOD_GET]),
+    ])]
+    #[DisablePrefilters([ActionFilter\Csrf::class])]
+    public function listAction(): array { /* ... */ }
+
+    #[HttpMethod(HttpMethod::METHOD_POST)]
+    #[Authentication]
+    #[Csrf]
+    public function createAction(string $title): array { /* ... */ }
+}
+```
+
+Controller-level defaults via `getDefaultPreFilters()` / `getDefaultPostFilters()`. Use `#[EnablePrefilters]` / `#[DisablePrefilters]` to adjust inherited defaults per action.
+
+## Additional Autowire Types
+
+- `Bitrix\Main\Engine\CurrentUser` — current user context.
+- `Bitrix\Main\Engine\JsonPayload` — raw JSON body.
+- `Bitrix\Main\UI\PageNavigation` — pagination from request.
+
+Custom DTO autowiring via `getAutoWiredParameters()`.
+
+## Front-end Call
 
 ```js
 BX.ajax.runAction('vendor:module.post.create', {
@@ -186,13 +238,13 @@ BX.ajax.runAction('vendor:module.post.create', {
 });
 ```
 
-Для REST — `BX.rest.callMethod('vendor.module.post.create', {...})`.
+For REST — `BX.rest.callMethod('vendor.module.post.create', {...})`.
 
-## Чек-лист
+## Checklist
 
-- [ ] Контроллер **тонкий**: вызывает сервис, возвращает DTO/массив.
-- [ ] Указаны `HttpMethod` и `Authentication`/`Csrf` там, где нужно.
-- [ ] Вход валидируется через Request DTO + `#[ValidationParameter]` (см. `bitrix-validation`).
-- [ ] Ошибки возвращаются через `$this->addError(...)`, а не через исключения.
-- [ ] Возвращаемый тип явный: `array`, `HttpResponse` или `renderXxx`.
-- [ ] Зависимости инжектятся через конструктор; сервисы зарегистрированы в `ServiceLocator`.
+- [ ] Controller is **thin**: calls service, returns DTO/array.
+- [ ] `HttpMethod` and `Authentication`/`Csrf` are specified where needed.
+- [ ] Input is validated via Request DTO + `#[ValidationParameter]` (see `bitrix-validation`).
+- [ ] Errors are returned via `$this->addError(...)`, not via exceptions.
+- [ ] Return type is explicit: `array`, `HttpResponse` or `renderXxx`.
+- [ ] Dependencies are injected via constructor; services are registered in `ServiceLocator`.

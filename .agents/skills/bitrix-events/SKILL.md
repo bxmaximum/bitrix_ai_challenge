@@ -1,21 +1,21 @@
 ---
 name: bitrix-events
-description: Покрывает событийную систему Bitrix — новая модель (Bitrix\Main\Event, EventResult, EventManager::addEventHandler, make:event, make:eventhandler) и старая (OnBefore*/OnAfter* хуки в CIBlock, CUser, CSale и других классических API). Применяется при интеграции модулей, хуках жизненного цикла сущностей, публикации собственных событий и подписке на события других модулей. Ключевые термины — Event, EventManager, EventResult, OnBefore, OnAfter, handler, subscriber, addEventHandler.
+description: Covers Bitrix event system — new model (Bitrix\Main\Event, EventResult, EventManager::addEventHandler, make:event, make:eventhandler) and old model (OnBefore*/OnAfter* hooks in CIBlock, CUser, CSale and other classic APIs). Applied when integrating modules, entity lifecycle hooks, publishing custom events and subscribing to events of other modules. Key terms — Event, EventManager, EventResult, OnBefore, OnAfter, handler, subscriber, addEventHandler.
 ---
 
-# События Bitrix
+# Bitrix Events
 
-Есть **две модели событий**: новая (ООП, `Event` + `EventResult`) и старая (строковый код + обработчик, возвращающий bool/массив). Для нового кода — новая модель. Старая используется для совместимости с ядром (`OnBeforeUserAdd`, `OnPageStart`, ...).
+There are **two event models**: new (OOP, `Event` + `EventResult`) and old (string code + handler returning bool/array). For new code — use the new model. The old model is used for compatibility with the kernel (`OnBeforeUserAdd`, `OnPageStart`, ...).
 
-## Новая модель — публикация своего события
+## New Model — Publishing Your Event
 
-### 1. Создать класс события
+### 1. Create Event Class
 
 ```bash
 php bitrix/bitrix.php make:event PostCreated -m vendor.blog
 ```
 
-Файл: `/local/modules/vendor.blog/lib/Public/Event/Post/PostCreatedEvent.php`.
+File: `/local/modules/vendor.blog/lib/Public/Event/Post/PostCreatedEvent.php`.
 
 ```php
 <?php declare(strict_types=1);
@@ -40,7 +40,7 @@ final class PostCreatedEvent extends Event
 }
 ```
 
-### 2. Бросить событие из сервиса
+### 2. Dispatch Event from Service
 
 ```php
 use Vendor\Blog\Public\Event\Post\PostCreatedEvent;
@@ -57,7 +57,7 @@ foreach ($event->getResults() as $result)
 }
 ```
 
-### 3. Написать обработчик
+### 3. Write Handler
 
 ```bash
 php bitrix/bitrix.php make:eventhandler NotifyAuthor \
@@ -96,7 +96,7 @@ final class NotifyAuthorHandler
 }
 ```
 
-### 4. Зарегистрировать обработчик в `install/index.php`
+### 4. Register Handler in `install/index.php`
 
 ```php
 \Bitrix\Main\EventManager::getInstance()->registerEventHandler(
@@ -108,17 +108,17 @@ final class NotifyAuthorHandler
 );
 ```
 
-В `DoUninstall()` — **обязательно** `unRegisterEventHandler` с теми же параметрами.
+In `DoUninstall()` — **mandatory** `unRegisterEventHandler` with the same parameters.
 
-## Старая модель (совместимость)
+## Old Model (Compatibility)
 
-Старые события имеют строковые имена: `OnBeforeUserAdd`, `OnAfterUserAdd`, `OnEpilog`, `OnPageStart`. Они передают массив/объект параметров, возвращают:
+Old events have string names: `OnBeforeUserAdd`, `OnAfterUserAdd`, `OnEpilog`, `OnPageStart`. They pass an array/object of parameters and return:
 
-- `true`/ничего — продолжить;
-- `false` + `$APPLICATION->ThrowException(...)` — отменить действие;
-- массив с `'FIELDS' => [...]` — модифицировать поля (для `OnBefore*`).
+- `true`/nothing — continue;
+- `false` + `$APPLICATION->ThrowException(...)` — cancel action;
+- array with `'FIELDS' => [...]` — modify fields (for `OnBefore*`).
 
-Регистрация обработчиков, принимающих **старую** сигнатуру:
+Registering handlers accepting the **old** signature:
 
 ```php
 EventManager::getInstance()->registerEventHandlerCompatible(
@@ -130,11 +130,11 @@ EventManager::getInstance()->registerEventHandlerCompatible(
 );
 ```
 
-Новая `registerEventHandler` тоже работает со старыми событиями, но адаптирует их к сигнатуре `Event $event` — параметры достаются через `$event->getParameter('fields')`, модификация через `EventResult`.
+The new `registerEventHandler` also works with old events but adapts them to the `Event $event` signature — parameters are retrieved via `$event->getParameter('fields')`, modification via `EventResult`.
 
-## Инъекция зависимостей в обработчик
+## Dependency Injection into Handler
 
-Bitrix создаёт обработчик через `ServiceLocator`, если класс там зарегистрирован. Иначе — через `new` (без конструкторных параметров).
+Bitrix creates the handler via `ServiceLocator` if the class is registered there. Otherwise — via `new` (without constructor parameters).
 
 ```php
 'services' => [
@@ -147,15 +147,15 @@ Bitrix создаёт обработчик через `ServiceLocator`, если
 ],
 ```
 
-## Порядок и цепочка обработчиков
+## Order and Chain of Handlers
 
-- Обработчики вызываются в порядке регистрации. Можно задать вес через `$sort` в `addEventHandler`/`registerEventHandler` (5-й/7-й параметр).
-- Новое API (`Event::send()`) собирает результаты всех обработчиков — цепочка не прерывается, даже если один вернул `ERROR`.
-- В старом API одиночный `false` может прервать действие (зависит от вызывающего кода в ядре).
+- Handlers are called in order of registration. Weight can be specified via `$sort` in `addEventHandler`/`registerEventHandler` (5th/7th parameter).
+- The new API (`Event::send()`) collects results from all handlers — the chain is not interrupted even if one returns `ERROR`.
+- In the old API, a single `false` can interrupt the action (depends on the calling code in the kernel).
 
-## Динамическая подписка в одном процессе
+## Dynamic Subscription in One Process
 
-Для хуков, которые не нужно хранить в БД (тесты, одноразовые обёртки):
+For hooks that don't need to be stored in the DB (tests, one-time wrappers):
 
 ```php
 EventManager::getInstance()->addEventHandler(
@@ -165,13 +165,13 @@ EventManager::getInstance()->addEventHandler(
 );
 ```
 
-Такая регистрация живёт до конца запроса.
+Such registration lives until the end of the request.
 
-## Чек-лист
+## Checklist
 
-- [ ] Файлы публичных событий — в `/lib/Public/Event/<Aggregate>/`.
-- [ ] Обработчики чужих событий — в `/lib/Internals/Integration/<OtherModule>/EventHandler/`.
-- [ ] Регистрация и снятие обработчиков парой в `DoInstall`/`DoUninstall`.
-- [ ] Для собственных событий используется `Bitrix\Main\Event` + `EventResult`, а не возврат массивов.
-- [ ] Обработчик идемпотентен и не падает в фатал — всё заворачиваем в `try/catch` с логированием.
-- [ ] Тяжёлая логика уносится в очередь (`Messenger`), обработчик лишь ставит задачу.
+- [ ] Public event files — in `/lib/Public/Event/<Aggregate>/`.
+- [ ] Handlers of other modules' events — in `/lib/Internals/Integration/<OtherModule>/EventHandler/`.
+- [ ] Registration and unregistration of handlers as a pair in `DoInstall`/`DoUninstall`.
+- [ ] Custom events use `Bitrix\Main\Event` + `EventResult` instead of returning arrays.
+- [ ] Handler is idempotent and does not crash — wrap everything in `try/catch` with logging.
+- [ ] Heavy logic is moved to a queue (`Messenger` via `$message->send()`), handler only dispatches a task.

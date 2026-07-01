@@ -1,48 +1,59 @@
 ---
 name: bitrix-console-commands
-description: Покрывает CLI-инструменты Bitrix — php bitrix/bitrix.php, генераторы make:module/make:controller/make:tablet/make:service/make:event/make:component/make:request, команды ядра (orm:annotate, messenger:consume, translate:index), создание собственных команд на Symfony Console и их регистрация в секции console файла .settings.php. Применяется при скаффолдинге нового кода, cron-задачах, написании своих CLI-команд и запуске воркеров очереди. Ключевые термины — bitrix.php, make command, Symfony Console, CLI, command, console namespace.
+description: Covers Bitrix CLI tools — php bitrix/bitrix.php, generators make:module/make:controller/make:tablet/make:service/make:event/make:component/make:request, kernel commands (orm:annotate, messenger:consume, translate:index), creating custom commands on Symfony Console and registering them in the console section of .settings.php. Applied for scaffolding new code, cron tasks, writing custom CLI commands, and running queue workers. Key terms — bitrix.php, make command, Symfony Console, CLI, command, console namespace.
 ---
 
-# Консольные команды Bitrix
+# Bitrix Console Commands
 
-Все CLI-операции выполняются через `bitrix.php` из папки `/bitrix/`:
+All CLI operations are performed via `bitrix.php` from the `/bitrix/` folder:
 
 ```bash
 cd /path/to/document_root/bitrix
-php bitrix.php list                   # список всех команд
-php bitrix.php help <command>         # справка по команде
+php bitrix.php list                   # list all commands
+php bitrix.php help <command>         # help for a command
 php bitrix.php <command> [args] -n    # -n = no-interaction
 ```
 
-Требуется настроенный Composer (обычно `/local/composer.json` + `composer install` → `/local/vendor/`).
+Requires configured Composer (usually `/local/composer.json` + `composer install` → `/local/vendor/`).
 
-## Генераторы кода (`make:*`)
+Configure Composer path in `.settings.php`:
 
-Команды доступны с main **25.900.0**. Все они интерактивные, но поддерживают `-n` и обязательные параметры.
+```php
+'composer' => [
+    'value' => ['config_path' => '../composer.json'],
+    'readonly' => true,
+],
+```
 
-| Команда | Что создаёт |
+Keep `composer.json` outside `DOCUMENT_ROOT` when possible.
+
+## Code Generators (`make:*`)
+
+Commands are available from main **25.900.0**. All are interactive but support `-n` and mandatory parameters.
+
+| Command | What It Creates |
 | --- | --- |
-| `make:module vendor.module` | Скелет модуля с `install/`, `lang/`, `.settings.php`, `/lib/` |
-| `make:controller <Name> -m vendor.module --actions=crud` | Контроллер в `/lib/Infrastructure/Controller/` |
-| `make:controller <Name> -m vendor.module --actions=list,get -C Web` | Контроллер в подпространстве `Web` |
-| `make:tablet my_post vendor.module` | ORM-таблет в `/lib/Model/` |
-| `make:entity post -m vendor.module --fields=title,description` | Доменная сущность |
-| `make:service <Name> -m vendor.module` | Сервис прикладного слоя |
-| `make:request <Name> -m vendor.module --fields=title,body` | Request-DTO для валидации параметров |
-| `make:event <Name> -m vendor.module` | Класс события `extends Event` |
-| `make:eventhandler <Name> --event-module=... --handler-module=...` | Класс обработчика |
-| `make:message <Name> -m vendor.module` | Сообщение для очереди (Messenger) |
-| `make:messagehandler <Name> --event-module=... --handler-module=...` | Обработчик сообщения |
-| `make:agent <Name> -m vendor.module` | Агент + подсказка по `CAgent::AddAgent` |
-| `make:component Vendor:Name --module=vendor.module` | Компонент внутри модуля |
-| `make:component Vendor:Name --local` | Компонент в `/local/components/` |
+| `make:module vendor.module` | Module skeleton with `install/`, `lang/`, `.settings.php`, `/lib/` |
+| `make:controller <Name> -m vendor.module --actions=crud` | Controller in `/lib/Infrastructure/Controller/` |
+| `make:controller <Name> -m vendor.module --actions=list,get -C Web` | Controller in `Web` subspace |
+| `make:tablet my_post vendor.module` | ORM tablet in `/lib/Model/` |
+| `make:entity post -m vendor.module --fields=title,description` | Domain entity |
+| `make:service <Name> -m vendor.module` | Application layer service |
+| `make:request <Name> -m vendor.module --fields=title,body` | Request DTO for parameter validation |
+| `make:event <Name> -m vendor.module` | Event class `extends Event` |
+| `make:eventhandler <Name> --event-module=... --handler-module=...` | Handler class |
+| `make:message <Name> -m vendor.module` | Queue message (Messenger) |
+| `make:messagehandler <Name> --event-module=... --handler-module=...` | Message handler |
+| `make:agent <Name> -m vendor.module` | Agent + hint for `CAgent::AddAgent` |
+| `make:component Vendor:Name --module=vendor.module` | Component inside a module |
+| `make:component Vendor:Name --local` | Component in `/local/components/` |
 
-**Опции управления размещением:**
+**Placement Control Options:**
 
-- `--prefix=V2` — подпространство после корня модуля, `lib/V2/Infrastructure/Controller/...`.
-- `--context=FeatureName` — подпапка внутри слоя, `lib/Infrastructure/Agent/FeatureName/...`.
+- `--prefix=V2` — subspace after module root, `lib/V2/Infrastructure/Controller/...`.
+- `--context=FeatureName` — subfolder inside the layer, `lib/Infrastructure/Agent/FeatureName/...`.
 
-**Пример неинтерактивного вызова:**
+**Non-interactive Call Example:**
 
 ```bash
 php bitrix.php make:controller Post -m vendor.blog --actions=crud -n
@@ -50,16 +61,16 @@ php bitrix.php make:tablet blog_post vendor.blog -n
 php bitrix.php orm:annotate -m vendor.blog
 ```
 
-## Встроенные служебные команды
+## Built-in Utility Commands
 
-- `orm:annotate [-m modules] [--clean]` — генерирует PHPDoc-аннотации ORM-сущностей для автодополнения в IDE.
-- `messenger:consume [queues] [--sleep N] [--time-limit N]` — разбор очередей сообщений. Можно запускать по cron или Supervisor.
-- `translate:index [--path=...]` — индексация переводов.
-- `update:modules [-m modules]`, `update:versions <file.json>`, `update:languages [-l codes]` — обновления.
+- `orm:annotate [-m modules] [--clean]` — generates PHPDoc annotations for ORM entities for IDE autocompletion.
+- `messenger:consume [queues] [--sleep N] [--time-limit N]` — message queue processing. Can be run via cron or Supervisor.
+- `translate:index [--path=...]` — indexing translations.
+- `update:modules [-m modules]`, `update:versions <file.json>`, `update:languages [-l codes]` — updates.
 
-## Своя консольная команда
+## Custom Console Command
 
-1. Унаследуйся от `Symfony\Component\Console\Command\Command`, разложи файлы в `/lib/Cli/Command/<Domain>/`.
+1. Inherit from `Symfony\Component\Console\Command\Command`, place files in `/lib/Cli/Command/<Domain>/`.
 
     ```php
     namespace Vendor\Module\Cli\Command\Feature;
@@ -98,7 +109,7 @@ php bitrix.php orm:annotate -m vendor.blog
     }
     ```
 
-2. Зарегистрируй команду в `/local/modules/vendor.module/.settings.php`:
+2. Register the command in `/local/modules/vendor.module/.settings.php`:
 
     ```php
     return [
@@ -113,27 +124,27 @@ php bitrix.php orm:annotate -m vendor.blog
     ];
     ```
 
-    > Секция называется **`console`**, ключ — **`commands`**. Старое имя `cli` для новых модулей использовать не нужно.
+    > Section is named **`console`**, key is **`commands`**. Old name `cli` should not be used for new modules.
 
-3. После этого команда появится в `php bitrix.php list` и будет называться по пространству имён: `feature:rebuild`.
+3. After this, the command will appear in `php bitrix.php list` and will be named by its namespace: `feature:rebuild`.
 
-## Запуск по cron
+## Running via Cron
 
 ```cron
-# Каждые 5 минут — обработка очереди
+# Every 5 minutes — queue processing
 */5 * * * * php /var/www/site/bitrix/bitrix.php messenger:consume --sleep=1 --time-limit=270 --no-interaction
 
-# Каждый час — чистка кеша фичи
+# Every hour — feature cache cleanup
 0 * * * *   php /var/www/site/bitrix/bitrix.php feature:rebuild --no-interaction
 ```
 
-Всегда используй `--no-interaction` в cron.
+Always use `--no-interaction` in cron.
 
-## Чек-лист хорошей команды
+## Checklist for a Good Command
 
-- [ ] Описательное имя (`feature:rebuild`, а не `do-stuff`).
-- [ ] Все параметры — через `InputArgument`/`InputOption`, а не через глобальные переменные.
-- [ ] Возвращает `Command::SUCCESS`/`Command::FAILURE`/`Command::INVALID`.
-- [ ] Логи и прогресс идут в `OutputInterface`, ошибки — на stderr через `$output->getErrorOutput()`.
-- [ ] Длительная логика живёт в сервисе, команда — тонкая обёртка.
-- [ ] При фатальной ошибке исключение логируется и преобразуется в `FAILURE`.
+- [ ] Descriptive name (`feature:rebuild`, not `do-stuff`).
+- [ ] All parameters — via `InputArgument`/`InputOption`, not global variables.
+- [ ] Returns `Command::SUCCESS`/`Command::FAILURE`/`Command::INVALID`.
+- [ ] Logs and progress go to `OutputInterface`, errors — to stderr via `$output->getErrorOutput()`.
+- [ ] Long logic lives in a service, command is a thin wrapper.
+- [ ] In case of a fatal error, exception is logged and converted to `FAILURE`.

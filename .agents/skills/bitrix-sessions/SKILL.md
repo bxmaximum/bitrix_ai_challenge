@@ -1,11 +1,11 @@
 ---
 name: bitrix-sessions
-description: Покрывает сессии Bitrix — Application::getSession(), getKernelSession(), getLocalSession(), режимы BX_SECURITY_SESSION_READONLY и BX_SECURITY_SESSION_VIRTUAL, хранилища (cache, database, redis, null session handler), separated-режим секции session в .settings.php. Применяется вместо прямого обращения к $_SESSION, при оптимизации AJAX-блокировок по сессии, настройке альтернативных хранилищ и разделении kernel/local-сессий. Ключевые термины — session, getSession, session storage, BX_SECURITY_SESSION_READONLY, separated session, getKernelSession, getLocalSession.
+description: Covers Bitrix sessions — Application::getSession(), getKernelSession(), getLocalSession(), BX_SECURITY_SESSION_READONLY and BX_SECURITY_SESSION_VIRTUAL modes, storages (cache, database, redis, null session handler), separated session mode in .settings.php. Applied instead of direct $_SESSION access, when optimizing AJAX session locks, configuring alternative storages, and separating kernel/local sessions. Key terms — session, getSession, session storage, BX_SECURITY_SESSION_READONLY, separated session, getKernelSession, getLocalSession.
 ---
 
-# Сессии Bitrix
+# Bitrix Sessions
 
-Прямое обращение к `$_SESSION` ломает нефункциональные режимы (`readonly`, виртуальная сессия, разделённая сессия) и тесты. Используй **Session API**.
+Directly accessing `$_SESSION` breaks non-functional modes (`readonly`, virtual session, separated session) and tests. Use the **Session API**.
 
 ```php
 use Bitrix\Main\Application;
@@ -18,28 +18,28 @@ if (!$session->has('cart'))
 }
 
 $session['cart']['items'][] = $productId;
-$session['cart'] = $cart; // set через ArrayAccess
+$session['cart'] = $cart; // set via ArrayAccess
 
 $session->remove('flash_message');
-$session->clear();          // всё удалить
+$session->clear();          // remove everything
 ```
 
-Интерфейс — `Bitrix\Main\Session\SessionInterface` + `ArrayAccess`.
+Interface — `Bitrix\Main\Session\SessionInterface` + `ArrayAccess`.
 
-## Kernel-сессия (hot)
+## Kernel Session (hot)
 
-Для малого объёма быстрых данных, к которым ядро обращается почти каждый хит:
+For a small amount of fast data that the kernel accesses almost every hit:
 
 ```php
 $kernelSession = Application::getInstance()->getKernelSession();
 $kernelSession->set('UF_LAST_LOGIN', time());
 ```
 
-В `separated`-режиме kernel хранит горячий фрагмент в зашифрованных cookies — делает авторизацию/CSRF быстрыми без обращения к backend-хранилищу.
+In `separated` mode, the kernel stores the hot fragment in encrypted cookies — making authorization/CSRF fast without accessing backend storage.
 
-## SessionLocalStorage — «сессионный кеш»
+## SessionLocalStorage — "Session Cache"
 
-Использовать `$session->set(...)` для кеша корзины или временных расчётов плохо: длинные значения блокируют хит, замедляют параллельные AJAX. С `main 20.5.400` есть изолированный контейнер, привязанный к `session_id()`:
+Using `$session->set(...)` for cart cache or temporary calculations is bad: long values block the hit and slow down parallel AJAX. Since `main 20.5.400`, there is an isolated container tied to `session_id()`:
 
 ```php
 $local = Application::getInstance()->getLocalSession('cart');
@@ -53,44 +53,44 @@ if (!isset($local['productIds']))
 $ids = $local->get('productIds');
 ```
 
-- Хранится в кеше из секции `cache` в `.settings.php` (а не в `$_SESSION`).
-- Автоматически сохраняется в конце хита.
-- При файловом кеше внутри используется `$_SESSION`, чтобы GC корректно чистил устаревшее.
+- Stored in the cache from the `cache` section in `.settings.php` (not in `$_SESSION`).
+- Automatically saved at the end of the hit.
+- With file cache, `$_SESSION` is used internally so that GC correctly cleans up stale data.
 
-Используй для: корзины, временных фильтров, wizard-ов, UI-черновиков.
+Use for: carts, temporary filters, wizards, UI drafts.
 
-## Режимы сессии
+## Session Modes
 
-### Read-only (неблокирующая)
+### Read-only (non-blocking)
 
-Подходит для AJAX, где запись не нужна — убирает блокировку записи:
+Suitable for AJAX where writing is not needed — removes the write lock:
 
 ```php
-// до подключения prolog
+// before including prolog
 define('BX_SECURITY_SESSION_READONLY', true);
 
 require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php';
 ```
 
-После этого:
+After this:
 
-- Сессия читается из redis/memcache/db без `flock`/SETNX — параллельные AJAX не ждут друг друга.
-- Изменения **не сохранятся** в конце хита.
+- Session is read from redis/memcache/db without `flock`/SETNX — parallel AJAX requests don't wait for each other.
+- Changes **will not be saved** at the end of the hit.
 
-Хорошо для вычитывающих эндпоинтов (поиск, подсказки, счётчики).
+Good for read-only endpoints (search, suggestions, counters).
 
-### Virtual (в памяти)
+### Virtual (in-memory)
 
 ```php
 define('BX_SECURITY_SESSION_VIRTUAL', true);
 ```
 
-- Сессия создаётся в памяти, в конце хита не сохраняется.
-- Применяется для REST-API с авторизацией по токену — авторизация проходит, а сессия не мусорит хранилище.
+- Session is created in memory, not saved at the end of the hit.
+- Used for REST-API with token-based authorization — authorization passes, but the session doesn't clutter storage.
 
-### Separated — разделённый режим
+### Separated Mode
 
-«Hot» kernel-данные → cookies, «cold» — в backend-хранилище. Включается в `.settings.php`:
+"Hot" kernel data → cookies, "cold" data → backend storage. Enabled in `.settings.php`:
 
 ```php
 'session' => [
@@ -105,21 +105,21 @@ define('BX_SECURITY_SESSION_VIRTUAL', true);
 ],
 ```
 
-- Меньше обращений к Redis/БД.
-- Подходит для highload: «горячая» часть (`$_SESSION['BX']`) едет в cookie/отдельном kernel-хранилище, «холодная» — в общем бэкенде (Redis/БД).
+- Fewer calls to Redis/DB.
+- Suitable for high-load: the "hot" part (`$_SESSION['BX']`) goes to cookies/separate kernel storage, the "cold" part — to the general backend (Redis/DB).
 
-## Хранилища
+## Storages
 
-Задаются в `/local/.settings.php` (или `/bitrix/.settings.php`) в секции `session.value.handlers.general.type`:
+Specified in `/local/.settings.php` (or `/bitrix/.settings.php`) in the `session.value.handlers.general.type` section:
 
-| type | Когда | Замечание |
+| type | When | Note |
 | --- | --- | --- |
-| `file` | Dev, маленькие проекты | Блокировка по `flock` → AJAX тормозит |
-| `redis` | Highload, кластеры | Поддерживает `servers` (cluster/single), сериализацию |
-| `memcache` | Legacy-проекты | Нет персистентности |
-| `database` | Когда нет кеш-серверов | Таблица `b_user_session`, не для highload |
+| `file` | Dev, small projects | Lock by `flock` → AJAX slows down |
+| `redis` | High-load, clusters | Supports `servers` (cluster/single), serialization |
+| `memcache` | Legacy projects | No persistence |
+| `database` | When no cache servers | `b_user_session` table, not for high-load |
 
-### Пример Redis-кластера (мультимастер)
+### Redis Cluster Example (multi-master)
 
 ```php
 'session' => [
@@ -144,7 +144,7 @@ define('BX_SECURITY_SESSION_VIRTUAL', true);
 ],
 ```
 
-### Пример Memcache-кластера
+### Memcache Cluster Example
 
 ```php
 'handlers' => [
@@ -162,31 +162,31 @@ define('BX_SECURITY_SESSION_VIRTUAL', true);
 
 ```php
 'handlers' => [
-    'general' => ['type' => 'database'], // таблица b_user_session
+    'general' => ['type' => 'database'], // b_user_session table
 ],
 ```
 
-## Общие опции
+## General Options
 
 ```php
 'session' => [
     'value' => [
-        'lifetime'                 => 14400,  // секунд
+        'lifetime'                 => 14400,  // seconds
         'mode'                     => 'default',
-        'regenerateIdAfterLogin'   => true,   // рекомендуется: защита от fixation
-        'ignoreSessionStartErrors' => false,  // в true — хит продолжится даже если Redis недоступен
+        'regenerateIdAfterLogin'   => true,   // recommended: fixation protection
+        'ignoreSessionStartErrors' => false,  // true — hit continues even if Redis is unavailable
         'handlers' => [ ... ],
     ],
 ],
 ```
 
-## Flash-сообщения (частый паттерн)
+## Flash Messages (common pattern)
 
 ```php
 $session = Application::getInstance()->getSession();
-$session->set('flash.success', 'Пост сохранён');
+$session->set('flash.success', 'Post saved');
 
-// следующий запрос:
+// next request:
 if ($msg = $session->get('flash.success'))
 {
     $session->remove('flash.success');
@@ -194,26 +194,7 @@ if ($msg = $session->get('flash.success'))
 }
 ```
 
-## Безопасность
+## Security
 
-- После успешного логина/смены пароля — `$session->regenerateId()`. Либо `regenerateIdAfterLogin = true` в конфиге.
-- Куки сессии должны быть `HttpOnly`, `Secure`, `SameSite=Lax|Strict` — настраивается в модуле main или через `session.cookie_*` php.ini. См. `bitrix-security`.
-- Не храни в сессии токены третьих сервисов в чистом виде — используй `Cipher`/`SecretField`.
-
-## Антипаттерны
-
-- `$_SESSION['x'] = ...` вместо `Application::getSession()->set('x', ...)` → ломает `BX_SECURITY_SESSION_READONLY` и тесты.
-- Хранение десятков МБ данных (кеш каталога) в `general`-сессии → блокировки AJAX.
-- Сессия на `file` для highload с AJAX — всегда упирается в `flock`.
-- `session_start()`/`session_write_close()` руками — конфликтует с жизненным циклом ядра.
-- Использование `BX_SECURITY_SESSION_READONLY` в эндпоинтах, которые должны писать в сессию → данные молча не сохранятся.
-
-## Чек-лист
-
-- [ ] Работа с сессией — через `Application::getSession()`, а не `$_SESSION`.
-- [ ] Кеш-подобные данные — в `getLocalSession('category')`, а не в основной сессии.
-- [ ] Highload-окружение использует Redis/Memcache с `mode: separated` и разумным `lifetime`.
-- [ ] `regenerateIdAfterLogin = true` включен (в `session.value`).
-- [ ] AJAX-эндпоинты без записи помечены `BX_SECURITY_SESSION_READONLY`.
-- [ ] REST-API использует `BX_SECURITY_SESSION_VIRTUAL`.
-- [ ] Секреты в сессии зашифрованы или вынесены во внешнее хранилище.
+- After successful login/password change — `$session->regenerateId()`. Or `regenerateIdAfterLogin = true` in config.
+- Session cookies should be `HttpOnly`, `Secure`, `SameSite=Lax|Strict` — configured in main module or via `session.cookie_*` in php.ini. See `bitrix-security`.

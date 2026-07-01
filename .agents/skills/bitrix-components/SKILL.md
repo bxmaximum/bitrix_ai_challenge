@@ -1,34 +1,34 @@
 ---
 name: bitrix-components
-description: Покрывает разработку компонентов Bitrix — class.php, .parameters.php, .description.php, шаблоны template.php, result_modifier.php, component_epilog.php, кеш через startResultCache/endResultCache, комплексные компоненты с ЧПУ и SEF, Controllerable и AJAX через runComponentAction. Применяется при создании и правке компонентов и их шаблонов, добавлении AJAX-экшенов, настройке кеша компонента и SEF-маршрутов. Ключевые термины — component, template, arParams, arResult, SEF, Controllerable, runComponentAction, CBitrixComponent.
+description: Covers Bitrix component development — class.php, .parameters.php, .description.php, template.php templates, result_modifier.php, component_epilog.php, caching via startResultCache/endResultCache, complex components with SEF routes, Controllerable and AJAX via runComponentAction. Applied when creating and editing components and their templates, adding AJAX actions, configuring component cache and SEF routes. Key terms — component, template, arParams, arResult, SEF, Controllerable, runComponentAction, CBitrixComponent.
 ---
 
-# Компоненты Bitrix
+# Bitrix Components
 
-Компонент = виджет, который берёт данные через API модуля и преобразует их в HTML. Основная единица отображения в CMS-части Bitrix. Для целых разделов (каталог, личный кабинет) лучше контроллер + маршруты; комплексные компоненты с ЧПУ используются, когда нужна интеграция с древовидным визуальным редактором.
+Component = a widget that fetches data via module API and transforms it into HTML. The primary display unit in the CMS part of Bitrix. For entire sections (catalog, personal area), it's better to use a controller + routes; complex components with SEF are used when integration with the tree-like visual editor is required.
 
-## Где размещать
+## Where to Place
 
-- Системные: `/bitrix/components/bitrix/` — **не трогаем**.
-- Пользовательские: `/local/components/<vendor>/<name>/`.
-- Имя компонента: `<vendor>:<name>` (`vendor:catalog.list`). Namespace-папка — ваша, в неё не должны попадать чужие компоненты.
+- System: `/bitrix/components/bitrix/` — **do not touch**.
+- User: `/local/components/<vendor>/<name>/`.
+- Component Name: `<vendor>:<name>` (`vendor:catalog.list`). The namespace folder is yours; other vendors' components should not go there.
 
-Быстрый скаффолд:
+Quick scaffold:
 
 ```bash
 php bitrix/bitrix.php make:component Vendor:Catalog.List --local
 php bitrix/bitrix.php make:component Vendor:Catalog.List --module=vendor.catalog
 ```
 
-## Структура папки
+## Folder Structure
 
 ```
 /local/components/vendor/catalog.list/
-├── class.php              # логика (CBitrixComponent)
-├── .description.php       # имя/иконка/место в дереве визуального редактора
-├── .parameters.php        # описание параметров для админки
-├── ajax.php               # опционально: легковесный контроллер AJAX
-├── lang/ru/
+├── class.php              # logic (CBitrixComponent)
+├── .description.php       # name/icon/place in visual editor tree
+├── .parameters.php        # parameters description for admin panel
+├── ajax.php               # optional: lightweight AJAX controller
+├── lang/en/
 │   ├── class.php
 │   ├── .description.php
 │   ├── .parameters.php
@@ -42,14 +42,14 @@ php bitrix/bitrix.php make:component Vendor:Catalog.List --module=vendor.catalog
     │   ├── script.js
     │   ├── .description.php
     │   ├── .parameters.php
-    │   └── lang/ru/template.php
+    │   └── lang/en/template.php
     └── <other_template>/
 ```
 
-## `class.php` — минимум
+## `class.php` — Minimum
 
 ```php
-<?php
+<?php declare(strict_types=1);
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) { die(); }
 
@@ -82,13 +82,13 @@ final class VendorCatalogListComponent extends \CBitrixComponent
 
     private function fetchItems(): array
     {
-        // чтение данных
+        // data reading
         return [];
     }
 }
 ```
 
-## Подключение
+## Usage
 
 ```php
 $APPLICATION->IncludeComponent(
@@ -104,13 +104,13 @@ $APPLICATION->IncludeComponent(
 );
 ```
 
-В комплексных компонентах **всегда** передавай `$component` четвёртым параметром — это позволяет вложенным компонентам найти шаблоны в папке родителя и кешировать эпилоги.
+In complex components **always** pass `$component` as the fourth parameter — this allows nested components to find templates in the parent's folder and cache epilogs.
 
-## `$arParams` и `$arResult`
+## `$arParams` and `$arResult`
 
-- `$arParams` — входные параметры. Значения автоматически проходят через `htmlspecialcharsEx`; исходник доступен с префиксом `~`: `$arParams['~NAME']`.
-- `$arResult` — данные для шаблона. Инициализируется `[]`.
-- Обе — ссылки на поля компонента. Не переназначай через `$arParams = &$other` и не делай `unset($arParams)` — связь с шаблоном порвётся.
+- `$arParams` — input parameters. Values automatically go through `htmlspecialcharsEx`; raw source is available with `~` prefix: `$arParams['~NAME']`.
+- `$arResult` — template data. Initialized as `[]`.
+- Both are references to component fields. Do not reassign via `$arParams = &$other` and do not `unset($arParams)` — the link to the template will break.
 
 ## `.description.php`
 
@@ -124,14 +124,14 @@ $arComponentDescription = [
     'ICON' => '/images/icon.gif',
     'PATH' => [
         'ID' => 'content',
-        'CHILD' => ['ID' => 'catalog', 'NAME' => 'Каталог'],
+        'CHILD' => ['ID' => 'catalog', 'NAME' => 'Catalog'],
     ],
     'CACHE_PATH' => 'Y',
     'COMPLEX' => 'N',
 ];
 ```
 
-Без `PATH` компонент не появится в визуальном редакторе. Корни дерева зарезервированы: `content`, `service`, `communication`, `e-store`, `utility`.
+Without `PATH`, the component won't appear in the visual editor. Tree roots are reserved: `content`, `service`, `communication`, `e-store`, `utility`.
 
 ## `.parameters.php`
 
@@ -156,27 +156,27 @@ $arComponentParameters = [
             'TYPE' => 'STRING',
             'DEFAULT' => '20',
         ],
-        'SET_TITLE'  => [],  // особый — включает заголовок
-        'CACHE_TIME' => [],  // особый — включает блок кеширования
+        'SET_TITLE'  => [],  // special — enables title
+        'CACHE_TIME' => [],  // special — enables caching block
     ],
 ];
 ```
 
-Типы `TYPE`: `LIST`, `STRING`, `CHECKBOX`, `FILE`, `COLORPICKER`, `CUSTOM` (для своих JS-виджетов). Подсказки — константы `<PARAM>_TIP` в `lang/ru/.parameters.php`.
+`TYPE` types: `LIST`, `STRING`, `CHECKBOX`, `FILE`, `COLORPICKER`, `CUSTOM` (for custom JS widgets). Hints are `<PARAM>_TIP` constants in `lang/en/.parameters.php`.
 
-## Шаблон
+## Template
 
-### Поиск шаблона
+### Template Search
 
-Ядро ищет шаблон в порядке:
+The kernel looks for a template in this order:
 
 1. `/local/templates/<current_template>/components/<ns>/<name>/<tpl>/`
 2. `/local/templates/.default/components/...`
 3. `/bitrix/templates/<current_template>/components/...`
 4. `/bitrix/templates/.default/components/...`
-5. Системный шаблон внутри самого компонента.
+5. System template inside the component itself.
 
-Хочешь кастом — копируй целиком в `/local/templates/<site>/components/...` и правь там. Обновления ядра не затронут.
+If you want a custom one — copy the whole thing to `/local/templates/<site>/components/...` and edit it there. Kernel updates won't affect it.
 
 ### `template.php`
 
@@ -192,147 +192,128 @@ $arComponentParameters = [
 </div>
 ```
 
-### Доступные переменные
+### Available Variables
 
 `$arResult`, `$arParams`, `$templateName`, `$templateFolder`, `$templateFile`, `$componentPath`, `$component`, `$this`, `$templateData`, `$APPLICATION`, `$USER`.
 
 ## `result_modifier.php`
 
-Выполняется **только если кеша нет**, перед `template.php`. Идеально для донастройки данных перед выводом.
+Runs **before** the template. Use to enrich `$arResult` without modifying the component class.
 
-```php
-<?php if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) { die(); }
-
-foreach ($arResult['ITEMS'] as &$item)
-{
-    $item['URL'] = '/catalog/' . $item['CODE'] . '/';
-}
-unset($item);
-```
-
-Не трогай `SetTitle`, `SetMeta*` — они не сработают при попадании в кеш.
+- When caching is **enabled**, the template (and modifier) are skipped on cache hit — modifier does not run.
+- Cannot set dynamic page properties (`title`, `keywords`, `description`) when cache is on.
+- `$arParams` changes affect the template but not the component member.
+- `$arResult` changes affect the component member.
 
 ## `component_epilog.php`
 
-Выполняется **после шаблона на каждом хите** (и при попадании в кеш). Там меняем метаданные и счётчики.
+Runs **after** the template on **every hit**, even with cache enabled. Use for dynamic page properties, counters, or logic that must execute per request.
+
+Limit cached `$arResult` keys via `setResultCacheKeys()` in `class.php`:
 
 ```php
-<?php if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) { die(); }
-global $APPLICATION;
-
-if (!empty($arResult['META_TITLE']))
-{
-    $APPLICATION->SetTitle($arResult['META_TITLE']);
-}
+$this->setResultCacheKeys(['ITEMS', 'SECTION_NAME', 'NAV_CACHED_DATA']);
 ```
 
-Доступ к `$arResult` — только ключей, перечисленных в `$this->setResultCacheKeys([...])` из `class.php`. Плюс есть `$templateData` для прокидывания данных из `template.php` в эпилог (кешируется).
-
-## Кеш компонента
-
-- Включается через `$this->startResultCache($cacheTime, $additionalKey, $cacheId?, $cachePath?)`.
-- `$additionalKey` должен содержать всё, что влияет на результат (группы пользователя, язык, фильтры из запроса).
-- Отменить запись кеша можно через `$this->abortResultCache()`.
-- Сбросить кеш вручную: `$cache = \Bitrix\Main\Data\Cache::createInstance(); $cache->cleanDir('/cache_path_from_cache');`.
-- `CACHE_TYPE` параметра: `A` — автокеш (включается глобально в админке), `Y` — всегда, `N` — выключить.
-- `CACHE_GROUPS = 'Y'` — учитывать группы пользователя (важно, иначе разные группы увидят один HTML).
-
-См. скилл `bitrix-caching` для тегов/инвалидации.
-
-## Комплексные компоненты (ЧПУ)
-
-Комплексный компонент (`COMPLEX => 'Y'`) может иметь несколько страниц под своим корневым URL. Шаблоны путей описываются в `.parameters.php`:
+Pass data from template to epilog via `$templateData` (cached):
 
 ```php
-'SEF_MODE' => [
-    'list'    => ['NAME' => '', 'DEFAULT' => 'index.php',       'VARIABLES' => []],
-    'section' => ['NAME' => '', 'DEFAULT' => '#SECTION_CODE#/', 'VARIABLES' => ['SECTION_CODE']],
-    'detail'  => ['NAME' => '', 'DEFAULT' => '#SECTION_CODE#/#ELEMENT_CODE#/', 'VARIABLES' => ['SECTION_CODE', 'ELEMENT_CODE']],
+// template.php
+$templateData = ['ITEM_COUNT' => count($arResult['ITEMS'])];
+```
+
+Epilog lang phrases: create `/lang/en/component_epilog.php` and `Loc::loadLanguageFile(__FILE__)`.
+
+> Code in `class.php` after `includeComponentTemplate()` runs **after** epilog and overrides epilog changes (e.g. `SetTitle`).
+
+## Caching Details
+
+Cache ID is built from: site ID, component name, template name, parameters, external conditions (e.g. user groups).
+
+- Pass user groups as cache key when content differs by group: `$this->startResultCache(false, [$GLOBALS['USER']->GetUserGroupArray()])`.
+- Avoid deferred functions in templates when caching is on.
+- Autocache can be disabled globally in Admin → Autocache settings.
+
+## SEF (Search-Friendly URLs)
+
+For complex components, define in `.parameters.php`:
+
+```php
+'SEF_MODE' => 'Y',
+'SEF_FOLDER' => '/catalog/',
+'SEF_URL_TEMPLATES' => [
+    'sections' => '',
+    'section'  => '#SECTION_ID#/',
+    'element'  => '#SECTION_ID#/#ELEMENT_ID#/',
 ],
 'VARIABLE_ALIASES' => [
-    'SECTION_ID' => ['NAME' => 'ID раздела'],
-    'ELEMENT_ID' => ['NAME' => 'ID элемента'],
+    'SECTION_ID' => ['NAME' => 'Section ID'],
+    'ELEMENT_ID' => ['NAME' => 'Element ID'],
 ],
 ```
 
-В логике:
+In `class.php`, parse SEF variables and build URLs. Prefer controllers + routes for new full sections; use complex SEF components only when visual editor integration is required.
 
-```php
-$engine = new \CComponentEngine($this);
-$arVariables = [];
-$pageId = $engine->guessComponentPath($arParams['SEF_FOLDER'], $arParams['SEF_URL_TEMPLATES'], $arVariables);
-// $pageId = 'list' | 'section' | 'detail'
-```
+## Controllerable and AJAX
 
-Для новых проектов проще использовать обычный `routing` (см. `bitrix-routing`) и контроллеры — комплексные компоненты оставляй для проектов, где нужен редактор/Маркетплейс.
-
-## Контроллер внутри компонента
-
-Чтобы `BX.ajax.runComponentAction(...)` мог вызывать методы компонента:
+Implement `\Bitrix\Main\Engine\Contract\Controllerable` (+ `\Bitrix\Main\Errorable` for errors):
 
 ```php
 final class VendorCatalogListComponent extends \CBitrixComponent
     implements \Bitrix\Main\Engine\Contract\Controllerable, \Bitrix\Main\Errorable
 {
-    private \Bitrix\Main\ErrorCollection $errors;
-
-    public function onPrepareComponentParams($arParams): array
-    {
-        $this->errors = new \Bitrix\Main\ErrorCollection();
-        return $arParams;
-    }
+    protected \Bitrix\Main\ErrorCollection $errorCollection;
 
     public function configureActions(): array
     {
-        return [];
+        return [
+            'addToCart' => [
+                '+prefilters' => [new \Bitrix\Main\Engine\ActionFilter\Authentication()],
+            ],
+        ];
     }
 
-    public function loadMoreAction(int $page = 1): array
+    public function onPrepareComponentParams($arParams): array
     {
-        return ['items' => $this->fetchItems($page)];
+        $this->errorCollection = new \Bitrix\Main\ErrorCollection();
+        return parent::onPrepareComponentParams($arParams);
     }
 
-    public function getErrors(): array { return $this->errors->toArray(); }
-    public function getErrorByCode($code): ?\Bitrix\Main\Error { return $this->errors->getErrorByCode($code); }
+    public function addToCartAction(int $productId): array
+    {
+        // executeComponent() is NOT called during AJAX
+        return ['success' => true];
+    }
+
+    public function getErrors(): array { return $this->errorCollection->toArray(); }
+    public function getErrorByCode($code) { return $this->errorCollection->getErrorByCode($code); }
+
+    protected function listKeysSignedParameters(): array
+    {
+        return ['IBLOCK_ID', 'STORAGE_ID'];
+    }
 }
 ```
 
-Отдай подписанные параметры в JS:
+Alternative: lightweight `ajax.php` with a class extending `\Bitrix\Main\Engine\Controller`.
 
-```php
-protected function listKeysSignedParameters(): array
-{
-    return ['IBLOCK_ID', 'COUNT'];
-}
-```
+### JavaScript
 
-```php
-<script>
-new BX.Vendor.CatalogList({
-    componentName: '<?= $this->getComponent()->getName() ?>',
-    signedParameters: '<?= $this->getComponent()->getSignedParameters() ?>',
-});
-</script>
-```
-
-```js
-BX.ajax.runComponentAction(this.componentName, 'loadMore', {
+```javascript
+BX.ajax.runComponentAction('vendor:catalog.list', 'addToCart', {
     mode: 'class',
-    signedParameters: this.signedParameters,
-    data: { page: 2 },
-}).then(r => { /* ... */ });
+    signedParameters: '<?= $this->getComponent()->getSignedParameters() ?>',
+    data: { productId: 42 },
+});
 ```
 
-Альтернативно — вынеси логику в `ajax.php` как обычный контроллер `extends \Bitrix\Main\Engine\Controller` (см. `bitrix-controllers`).
+For AJAX page updates, include `id="pagetitle"` and `id="navigation"` in the template.
 
-## Чек-лист
+## Checklist
 
-- [ ] Компонент лежит в `/local/components/<vendor>/<name>/`, namespace-папка занята только твоими компонентами.
-- [ ] `class.php` начинается с `B_PROLOG_INCLUDED`-заглушки; параметры нормализованы в `onPrepareComponentParams`.
-- [ ] Обязательный модуль подключается через `Loader::includeModule`; ошибки выводятся через `ShowError`.
-- [ ] `startResultCache(...)` учитывает группы пользователя, язык и все параметры, влияющие на результат.
-- [ ] `SetResultCacheKeys` ограничивает, что попадёт в `$arResult` при кешировании.
-- [ ] Динамические `SetTitle`/метатеги — в `component_epilog.php`, а не в `template.php`.
-- [ ] В шаблоне всё из `$arResult` экранируется через `htmlspecialcharsbx`.
-- [ ] Для AJAX — либо `Controllerable` + подписанные параметры, либо отдельный `ajax.php`-контроллер.
-- [ ] Пользовательский шаблон лежит в `/local/templates/<site>/components/<ns>/<name>/<tpl>/`, а не правится в `/bitrix/`.
+- [ ] Logic in `class.php`; display in template; heavy work in services.
+- [ ] `onPrepareComponentParams` normalizes and casts all `$arParams`.
+- [ ] `setResultCacheKeys` limits epilog cache size.
+- [ ] Nested components pass `$component` as 4th argument to `IncludeComponent`.
+- [ ] `Controllerable` actions have proper filters; signed parameters listed in `listKeysSignedParameters`.
+- [ ] Templates in `/local/templates/<site>/components/` for site-specific overrides.

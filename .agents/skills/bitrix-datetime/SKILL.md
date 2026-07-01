@@ -1,16 +1,16 @@
 ---
 name: bitrix-datetime
-description: Покрывает работу с датой и временем в Bitrix — Bitrix\Main\Type\Date и DateTime, парсинг и форматирование по маскам ядра, арифметика дат, таймзоны через toUserTime/disableUserTime/enableUserTime, Context::getCulture() и форматы локали, конвертация в timestamp. Применяется при построении расписаний, пересчёте часовых поясов, сравнении дат, работе с полями ORM DateField и DatetimeField. Ключевые термины — Date, DateTime, toUserTime, format, timezone, Culture, DateField, timestamp.
+description: Covers date and time in Bitrix — Bitrix\Main\Type\Date and DateTime, parsing and formatting by kernel masks, date arithmetic, time zones via toUserTime/disableUserTime/enableUserTime, Context::getCulture() and locale formats, conversion to timestamp. Applied when building schedules, converting time zones, comparing dates, working with ORM fields DateField and DatetimeField. Key terms — Date, DateTime, toUserTime, format, timezone, Culture, DateField, timestamp.
 ---
 
-# Дата и время в Bitrix
+# Date and Time in Bitrix
 
-Bitrix не использует голый `\DateTime` — есть две обёртки, которые учитывают **региональные настройки сайта** и **часовой пояс пользователя**.
+Bitrix does not use raw `\DateTime` — there are two wrappers that take into account **site regional settings** and **user time zone**.
 
-- `Bitrix\Main\Type\Date` — только дата (время всегда `00:00:00`).
-- `Bitrix\Main\Type\DateTime` — дата + время + таймзона. Наследник `Date`.
+- `Bitrix\Main\Type\Date` — date only (time is always `00:00:00`).
+- `Bitrix\Main\Type\DateTime` — date + time + time zone. Inherits from `Date`.
 
-Оба наследуют PHP `\DateTime`, поэтому работает `->format(...)`, `->getTimestamp()` и т. п.
+Both inherit from PHP `\DateTime`, so `->format(...)`, `->getTimestamp()`, etc., work.
 
 ```php
 use Bitrix\Main\Type\Date;
@@ -21,120 +21,120 @@ $dt = new DateTime();                         // now()
 $dt = new DateTime('2025-11-25 14:30:00', 'Y-m-d H:i:s');
 ```
 
-## Форматы: маски Bitrix vs PHP
+## Formats: Bitrix Masks vs PHP
 
-Региональные настройки используют свой язык масок (`DD.MM.YYYY HH:MI:SS`). Метод `convertFormatToPhp(...)` преобразует его в PHP-формат.
+Regional settings use their own mask language (`DD.MM.YYYY HH:MI:SS`). The `convertFormatToPhp(...)` method converts it to PHP format.
 
-| Маска Bitrix | PHP | Что |
+| Bitrix Mask | PHP | Description |
 | --- | --- | --- |
-| `YYYY` | `Y` | Год |
-| `MM` | `m` | Месяц (с ведущим нулём) |
-| `MMMM` | `F` | Название месяца |
-| `DD` | `d` | День (с ведущим нулём) |
-| `HH` | `H` | Час 24 |
-| `GG` | `h` | Час 12 |
-| `H` / `G` | `G` / `g` | Часы без ведущего нуля |
-| `MI` | `i` | Минуты |
-| `SS` | `s` | Секунды |
+| `YYYY` | `Y` | Year |
+| `MM` | `m` | Month (with leading zero) |
+| `MMMM` | `F` | Month name |
+| `DD` | `d` | Day (with leading zero) |
+| `HH` | `H` | Hour 24 |
+| `GG` | `h` | Hour 12 |
+| `H` / `G` | `G` / `g` | Hour without leading zero |
+| `MI` | `i` | Minutes |
+| `SS` | `s` | Seconds |
 | `TT` / `T` | `A` / `a` | AM/PM |
 
 ```php
 $culture = \Bitrix\Main\Context::getCurrent()->getCulture();
 echo $dt->format($culture->getDateTimeFormat()); // 25.11.2025 14:30:00
-echo (string)$dt;                                // приведение к строке = format(culture.DateTime)
+echo (string)$dt;                                // string conversion = format(culture.DateTime)
 ```
 
-Используй `Culture::getDateFormat()`/`getDateTimeFormat()` при выводе UI — тогда проект переключается на другой язык без правок кода.
+Use `Culture::getDateFormat()`/`getDateTimeFormat()` for UI output — this allows the project to switch to another language without code changes.
 
-## Создание / парсинг
+## Creation / Parsing
 
-### Безопасный парсинг
+### Safe Parsing
 
 ```php
-$dt = DateTime::tryParse($request['DATE'], 'd.m.Y H:i'); // null при ошибке
-if ($dt === null) { /* ошибка формата */ }
+$dt = DateTime::tryParse($request['DATE'], 'd.m.Y H:i'); // null on error
+if ($dt === null) { /* format error */ }
 
 if (!DateTime::isCorrect('31.02.2025', 'd.m.Y')) { /* ... */ }
 ```
 
-Конструктор с некорректной строкой бросает `Bitrix\Main\ObjectException` — поэтому для пользовательского ввода используй `tryParse`/`isCorrect`.
+Constructor with an incorrect string throws `Bitrix\Main\ObjectException` — so use `tryParse`/`isCorrect` for user input.
 
-### Из других источников
+### From Other Sources
 
 ```php
 $dt = DateTime::createFromPhp(new \DateTime('2025-11-25 14:30:00', new \DateTimeZone('UTC')));
 $dt = DateTime::createFromTimestamp(time());
-$date = Date::createFromText('end of next week');    // null, если не распарсить; понимает локальный язык
+$date = Date::createFromText('end of next week');    // null if unparseable; understands local language
 ```
 
-## Арифметика
+## Arithmetic
 
-`add($interval)` принимает **и** `DateInterval`-строки (`P10D`, `-P1M`, `P1Y2M10D`), **и** человеческий текст (`+5 days`, `-2 weeks`):
+`add($interval)` accepts **both** `DateInterval` strings (`P10D`, `-P1M`, `P1Y2M10D`) **and** human text (`+5 days`, `-2 weeks`):
 
 ```php
 $date = new Date('01.02.2025', 'd.m.Y');
-$date->add('P10D');      // +10 дней → 11.02.2025
-$date->add('-P1M');      // -1 месяц → 11.01.2025
-$date->add('+2 weeks');  // +14 дней
+$date->add('P10D');      // +10 days → 11.02.2025
+$date->add('-P1M');      // -1 month → 11.01.2025
+$date->add('+2 weeks');  // +14 days
 ```
 
-Важно: `add` **мутирует объект** и возвращает его же. Если нужен неизменяемый расчёт — клонируй: `$later = (clone $dt)->add('P1D');`.
+Important: `add` **mutates the object** and returns it. If you need an immutable calculation — clone it: `$later = (clone $dt)->add('P1D');`.
 
-Установка конкретных значений:
+Setting specific values:
 
 ```php
 $dt->setDate(2026, 1, 15);
 $dt->setTime(9, 30, 0);
 ```
 
-Диффы:
+Diffs:
 
 ```php
 $diff = $d2->getDiff($d1);   // \DateInterval
 echo $diff->days;
 ```
 
-## Часовые пояса
+## Time Zones
 
-Bitrix хранит даты в таймзоне **сервера**, а пользователю показывает в его таймзоне (из профиля или автоопределённой браузером). Настраивается в *Настройки → Главный модуль → Часовые пояса*.
+Bitrix stores dates in **server** time zone and shows them to the user in their time zone (from profile or auto-detected by browser). Configured in *Settings → Main Module → Time Zones*.
 
-### Явная смена таймзоны объекта
+### Explicitly Changing Object Time Zone
 
 ```php
 $dt->setTimeZone(new \DateTimeZone('Europe/Berlin'));
-$dt->setDefaultTimeZone(); // вернуть серверную
+$dt->setDefaultTimeZone(); // return to server time zone
 ```
 
-### Перевод в/из пользовательского времени
+### Converting To/From User Time
 
 ```php
-// Ввод от пользователя в его TZ → объект серверного времени
+// User input in their TZ → server time object
 $serverDt = DateTime::createFromUserTime('25.11.2025 18:00');
 
-// Объект серверного времени → строка в TZ пользователя
+// Server time object → string in user's TZ
 $userDt = $serverDt->toUserTime();
 ```
 
-### Авто-конвертация при приведении к строке
+### Auto-conversion on String Cast
 
-Если в настройках модуля `main` включены таймзоны, приведение `DateTime` → строка **автоматически** переведёт в пояс пользователя:
+If time zones are enabled in `main` module settings, `DateTime` → string cast **automatically** converts to user's time zone:
 
 ```php
-$dt = new DateTime('2025-11-25 12:00:00', 'Y-m-d H:i:s'); // UTC-сервер
-echo $dt;  // у пользователя в UTC+3 будет «25.11.2025 15:00:00»
+$dt = new DateTime('2025-11-25 12:00:00', 'Y-m-d H:i:s'); // UTC server
+echo $dt;  // for a user in UTC+3 it will be "25.11.2025 15:00:00"
 ```
 
-**Отключить** (для логов, отладки, системных событий, почты админу):
+**Disable** (for logs, debugging, system events, email to admin):
 
 ```php
-$dt->disableUserTime();        // серверное время
-$dt->enableUserTime();         // включить обратно
+$dt->disableUserTime();        // server time
+$dt->enableUserTime();         // enable back
 $dt->isUserTimeEnabled();      // true|false
 ```
 
-> ORM-поля типа `DatetimeField` возвращают уже готовый `DateTime` — можно сразу пишешь `echo $post->getCreatedAt();`, но при логировании вызывай `disableUserTime()`.
+> ORM fields of `DatetimeField` type return a ready-to-use `DateTime` — you can immediately write `echo $post->getCreatedAt();`, but call `disableUserTime()` when logging.
 
-## Интеграция с ORM
+## ORM Integration
 
 ```php
 use Bitrix\Main\ORM\Fields\DatetimeField;
@@ -147,32 +147,32 @@ use Bitrix\Main\ORM\Fields\DateField;
 (new DateField('BIRTH_DAY'))->configureNullable();
 ```
 
-В запросах можно сравнивать напрямую с `DateTime`:
+In queries, you can compare directly with `DateTime`:
 
 ```php
 PostTable::getList([
     'filter' => [
-        '>CREATED_AT' => (new DateTime())->add('-P7D'),  // неделю назад
+        '>CREATED_AT' => (new DateTime())->add('-P7D'),  // a week ago
     ],
 ]);
 ```
 
-## Когда `\DateTime`, когда Bitrix `DateTime`
+## When to use `\DateTime`, when Bitrix `DateTime`
 
-- Публичное API (запись в БД, вывод пользователю, ORM) — **Bitrix `DateTime`**.
-- Мост с внешней библиотекой на PSR/Symfony — получай `\DateTimeImmutable` и конвертируй через `DateTime::createFromPhp(...)`.
-- Для арифметики и разниц — `DateTime` подходит, и тот и другой API доступны.
+- Public API (writing to DB, UI output, ORM) — **Bitrix `DateTime`**.
+- Bridge with an external library using PSR/Symfony — get `\DateTimeImmutable` and convert via `DateTime::createFromPhp(...)`.
+- For arithmetic and differences — `DateTime` works, both APIs are available.
 
-## Практические рецепты
+## Practical Recipes
 
-### Начало/конец суток
+### Start/End of Day
 
 ```php
 $start = (clone $now)->setTime(0, 0, 0);
 $end   = (clone $now)->setTime(23, 59, 59);
 ```
 
-### Начало недели (понедельник)
+### Start of Week (Monday)
 
 ```php
 $weekStart = (clone $now);
@@ -180,13 +180,13 @@ $weekStart->setTime(0, 0, 0);
 $weekStart->modify('monday this week');
 ```
 
-### Тот же день в прошлом году
+### Same Day Last Year
 
 ```php
 $lastYear = (clone $now)->add('-P1Y');
 ```
 
-### Вывод «через 5 минут» в cron-задаче
+### Outputting "in 5 minutes" in a Cron Task
 
 ```php
 \CAgent::AddAgent(
@@ -200,28 +200,4 @@ $lastYear = (clone $now)->add('-P1Y');
 );
 ```
 
-### Сериализация в JSON API
-
-```php
-// ATOM/ISO 8601 в UTC
-$dt = (clone $post->getCreatedAt())->setTimeZone(new \DateTimeZone('UTC'));
-return ['created_at' => $dt->format(\DateTime::ATOM)];
-```
-
-## Антипаттерны
-
-- `date('d.m.Y', ...)` / `strtotime(...)` для пользовательского вывода — игнорирует Culture и TZ пользователя.
-- `new DateTime($raw)` без `tryParse` на пользовательском вводе — эксепшен.
-- Отсутствие `disableUserTime()` в логах → в логах окажется время, пересчитанное в TZ админа, который открыл страницу.
-- Конкатенация строк для «+1 день» вместо `add('P1D')`.
-- `setTimeZone(...)` после `format()` — таймзона на уже отформатированную строку не повлияет.
-- Приравнивание `DateTime` по `==` — сравнивай `->getTimestamp()` или через `>/<` на объектах.
-
-## Чек-лист
-
-- [ ] Пользовательский ввод проходит через `DateTime::tryParse` / `Date::isCorrect`.
-- [ ] Даты для пользователя форматируются по `Culture::getDateFormat()`/`getDateTimeFormat()`.
-- [ ] В логах, отладке, системных письмах используется `disableUserTime()`.
-- [ ] API-сериализация — через явный UTC + `DateTime::ATOM`/`ISO8601`.
-- [ ] Для ORM-полей используется `DateField`/`DatetimeField`, а не `StringField` со своим форматом.
-- [ ] `add(...)` и `modify(...)` воспринимаются как мутирующие — где нужен неизменяемый результат, используется `clone`.
+Use `Culture::getFormat()` / `Context::getCurrent()->getCulture()` for locale-aware date formatting instead of hardcoded `date()` masks.

@@ -1,15 +1,15 @@
 ---
 name: bitrix-http-client
-description: Покрывает HTTP-клиент Bitrix\Main\Web\HttpClient — legacy-режим и PSR-18 (sendRequest), асинхронные запросы через sendAsyncRequest и Promise, прокси и таймауты, глобальные http_client_options в .settings.php, логгер main.HttpClient, SSRF-защита и редиректы. Применяется при интеграциях с внешними API, webhook-клиентах, асинхронных обращениях и настройке общего поведения HTTP-клиента на проекте. Ключевые термины — HttpClient, PSR-18, sendAsyncRequest, Promise, proxy, SSRF, webhook, http_client_options.
+description: Covers Bitrix\Main\Web\HttpClient HTTP client — legacy mode and PSR-18 (sendRequest), asynchronous requests via sendAsyncRequest and Promise, proxies and timeouts, global http_client_options in .settings.php, main.HttpClient logger, SSRF protection and redirects. Applied in integrations with external APIs, webhook clients, asynchronous calls and configuring general HTTP client behavior in a project. Key terms — HttpClient, PSR-18, sendAsyncRequest, Promise, proxy, SSRF, webhook, http_client_options.
 ---
 
 # HttpClient
 
-`Bitrix\Main\Web\HttpClient` — встроенный клиент для внешних HTTP-запросов. Работает в двух режимах: **legacy** (удобный `get/post/download`) и **PSR-18** (полный контроль, совместимость с PSR-7/18, асинхронность).
+`Bitrix\Main\Web\HttpClient` is a built-in client for external HTTP requests. It works in two modes: **legacy** (convenient `get/post/download`) and **PSR-18** (full control, PSR-7/18 compatibility, asynchrony).
 
-## Глобальная конфигурация
+## Global Configuration
 
-Значения по умолчанию — в `/local/.settings.php`, секция `http_client_options`:
+Default values are in `/local/.settings.php`, `http_client_options` section:
 
 ```php
 'http_client_options' => [
@@ -22,32 +22,32 @@ description: Покрывает HTTP-клиент Bitrix\Main\Web\HttpClient —
         'redirectMax'    => 5,
         'bodyLengthMax'  => 10 * 1024 * 1024,
         'disableSslVerification' => false,
-        'privateIp'      => false,         // блокировать обращения к приватным IP
+        'privateIp'      => false,         // block requests to private IPs
     ],
     'readonly' => false,
 ],
 ```
 
-Проверка: `\Bitrix\Main\Config\Configuration::getValue('http_client_options')`.
+Check: `\Bitrix\Main\Config\Configuration::getValue('http_client_options')`.
 
-Эти же ключи принимает конструктор `new HttpClient([...])` — конструктор перекрывает глобальные.
+The same keys are accepted by `new HttpClient([...])` constructor — constructor overrides global ones.
 
-## Основные опции
+## Basic Options
 
-- `socketTimeout` — таймаут коннекта (сек), по умолчанию 30.
-- `streamTimeout` — таймаут чтения данных (сек).
-- `compress` — принимать gzip.
-- `redirect`, `redirectMax` — следование редиректам (только legacy).
-- `useCurl` — использовать cURL вместо сокетов (быстрее для асинхронки и https).
-- `disableSslVerification` — выключить проверку SSL (используй только для отладки).
-- `privateIp` — разрешать запросы к приватным IP (SSRF-защита: выключи для клиентских URL).
-- `bodyLengthMax` — ограничение размера тела ответа.
-- `waitResponse` — `false`, если нужно только разобрать заголовки и закрыть соединение.
-- `proxyHost`, `proxyPort`, `proxyUser`, `proxyPassword` — прокси.
+- `socketTimeout` — connection timeout (sec), default 30.
+- `streamTimeout` — data reading timeout (sec).
+- `compress` — accept gzip.
+- `redirect`, `redirectMax` — follow redirects (legacy only).
+- `useCurl` — use cURL instead of sockets (faster for asynchrony and https).
+- `disableSslVerification` — disable SSL verification (use only for debugging).
+- `privateIp` — allow requests to private IPs (SSRF protection: disable for client URLs).
+- `bodyLengthMax` — response body size limit.
+- `waitResponse` — `false` if only headers need to be parsed and connection closed.
+- `proxyHost`, `proxyPort`, `proxyUser`, `proxyPassword` — proxy settings.
 - `debugLevel` — `HttpDebug::NONE|REQUEST_HEADERS|RESPONSE_HEADERS|ALL`.
-- `headers`, `cookies` — словари дефолтов (только legacy).
+- `headers`, `cookies` — default dictionaries (legacy only).
 
-## Legacy-режим
+## Legacy Mode
 
 ### GET
 
@@ -73,7 +73,7 @@ $headers = $http->getHeaders();       // HttpHeaders
 $data    = \Bitrix\Main\Web\Json::decode($body);
 ```
 
-### POST формы
+### POST Form
 
 ```php
 $http->post('https://api.example.com/form', ['login' => 'admin', 'pass' => '***']);
@@ -87,7 +87,7 @@ $http->setHeader('Authorization', 'Bearer ' . $token);
 $response = $http->post('https://api.example.com/users', \Bitrix\Main\Web\Json::encode(['name' => 'Ivan']));
 ```
 
-### Скачивание файла
+### Downloading File
 
 ```php
 $http->download(
@@ -96,7 +96,7 @@ $http->download(
 );
 ```
 
-### Сессия по cookie
+### Session via Cookie
 
 ```php
 $http->query('GET', $loginUrl);
@@ -105,9 +105,9 @@ $http->setCookies($cookies);
 $http->post($apiUrl, $payload);
 ```
 
-### Условное чтение тела (с 23.300.0)
+### Conditional Body Fetch (from 23.300.0)
 
-Чтобы не качать мегабайты для «разведки»:
+To avoid downloading megabytes for "reconnaissance":
 
 ```php
 $http->shouldFetchBody(
@@ -116,9 +116,9 @@ $http->shouldFetchBody(
 );
 ```
 
-## PSR-18 режим
+## PSR-18 Mode
 
-Построй `Request` и отправь `sendRequest`:
+Build a `Request` and call `sendRequest`:
 
 ```php
 use Bitrix\Main\Web\HttpClient;
@@ -145,14 +145,14 @@ try
     $status = $response->getStatusCode();
     $payload = \Bitrix\Main\Web\Json::decode((string)$response->getBody());
 }
-catch (NetworkException $e) { /* не достучались */ }
-catch (RequestException $e) { /* запрос некорректен */ }
-catch (ClientException $e) { /* общая ошибка клиента */ }
+catch (NetworkException $e) { /* connection failed */ }
+catch (RequestException $e) { /* incorrect request */ }
+catch (ClientException $e) { /* general client error */ }
 ```
 
-Объекты PSR-7 **immutable** — `withHeader`, `withUri`, `withMethod` возвращают копию.
+PSR-7 objects are **immutable** — `withHeader`, `withUri`, `withMethod` return a copy.
 
-### Загрузка файла (multipart)
+### File Upload (multipart)
 
 ```php
 use Bitrix\Main\Web\Http\MultipartStream;
@@ -174,9 +174,9 @@ $response = $http->sendRequest($request);
 fclose($fh);
 ```
 
-### Редиректы вручную
+### Manual Redirects
 
-В PSR-18 редиректы не следуются автоматически:
+In PSR-18, redirects are not followed automatically:
 
 ```php
 do {
@@ -188,7 +188,7 @@ do {
 } while ($response->hasHeader('Location'));
 ```
 
-## Асинхронные запросы
+## Asynchronous Requests
 
 ```php
 $promises = [];
@@ -199,113 +199,53 @@ foreach ($urls as $url)
 
 foreach ($promises as $url => $promise)
 {
-    try
-    {
+    try {
         $response = $promise->wait();
-        $this->logger->info("$url => {$response->getStatusCode()}");
-    }
-    catch (\Bitrix\Main\Web\Http\ClientException $e)
-    {
-        $this->logger->warning("$url failed: {$e->getMessage()}");
-    }
+        // ...
+    } catch (\Throwable $e) { /* ... */ }
 }
 ```
 
-С callback-цепочками:
+Wait for all:
 
 ```php
-foreach ($urls as $url)
-{
-    $http->sendAsyncRequest(new Request(Method::GET, new Uri($url)))
-        ->then(
-            fn ($r) => $this->logger->info((string)$r->getStatusCode()),
-            fn (\Throwable $e) => $this->logger->error($e->getMessage()),
-        );
-}
-$http->wait();
+use Bitrix\Main\Web\Http\Promise;
+
+Promise::all($promises)->then(
+    fn (array $responses) => /* ... */,
+    fn (array $errors) => /* ... */
+)->wait();
 ```
 
-Без `wait()` очередь выполнится в фоновом задании ядра (`addBackgroundJob` автоматически) — удобно для «выстрелил и забыл» (вебхуки, аналитика).
+## Logging
 
-## Прокси и cURL
-
-```php
-$http = new HttpClient([
-    'useCurl'   => true,
-    'proxyHost' => 'proxy.internal',
-    'proxyPort' => 8080,
-    'proxyUser' => 'login',
-    'proxyPassword' => 'secret',
-    'curlLogFile' => '/var/log/httpclient-curl.log',
-]);
-```
-
-- HTTP прокси — прямой запрос с полным URI.
-- HTTPS прокси — `CONNECT`-туннель, затем TLS.
-
-Для нестабильных прокси предпочтителен `useCurl = true`.
-
-## Событие `OnHttpClientBuildRequest`
-
-Срабатывает перед каждой отправкой (PSR-18 и legacy) в рамках одного процесса. Удобно вешать общие заголовки/подписи:
-
-```php
-\Bitrix\Main\EventManager::getInstance()->addEventHandler(
-    'main',
-    'OnHttpClientBuildRequest',
-    static function (\Bitrix\Main\Web\Http\RequestEvent $event): void
-    {
-        $request = $event->getRequest()->withHeader('X-Project', 'Bitrix24');
-        $event->addResult(new \Bitrix\Main\Web\Http\RequestEventResult($request));
-    },
-);
-```
-
-Событие включено, пока у клиента не снят флаг `sendEvents` (по умолчанию `true`).
-
-## Логирование (PSR-3 через `loggers`)
-
-В `.settings.php`:
+`HttpClient` uses the PSR-3 logger `main.HttpClient`. Configure in `.settings.php`:
 
 ```php
 'loggers' => [
     'value' => [
         'main.HttpClient' => [
-            'constructor' => static function (
-                \Bitrix\Main\Web\Http\DebugInterface $debug,
-                \Psr\Http\Message\RequestInterface $request,
-            ): \Psr\Log\LoggerInterface {
-                $debug->setDebugLevel(\Bitrix\Main\Web\HttpDebug::ALL);
-
-                return new \Bitrix\Main\Diag\FileLogger(
-                    '/var/log/bitrix/http-' . spl_object_hash($request) . '.log',
-                );
-            },
-            'level' => \Psr\Log\LogLevel::DEBUG,
+            'className' => \Bitrix\Main\Diag\FileLogger::class,
+            'level'     => \Psr\Log\LogLevel::DEBUG,
+            'settings'  => ['file' => 'http_client.log'],
         ],
     ],
-    'readonly' => false,
 ],
 ```
 
-См. `bitrix-logger` для общего формата логгеров.
+## SSRF Protection
 
-## Безопасность (SSRF и SSL)
+Enabled by default in cloud and modern installations.
+- `privateIp` = `false` blocks requests to `127.0.0.1`, `192.168.*`, `10.*`, `169.254.*` (AWS/GCP metadata).
+- If your integration requires calling an internal service — explicitly set `'privateIp' => true` in the constructor.
 
-- Для клиентских URL **обязательно** `privateIp => false` и белый список доменов.
-- Никогда не выключай `disableSslVerification` в проде.
-- Ограничь `bodyLengthMax`, если принимаешь произвольные URL.
-- Не передавай секреты через query-string — только заголовки/тело.
-- Для URL из пользовательского ввода валидируй схему (`http/https` только), хост и порт ДО отправки.
+## Checklist
 
-См. `bitrix-security`.
+- [ ] `useCurl` is enabled (requires `php-curl`).
+- [ ] Timeouts (`socketTimeout`, `streamTimeout`) are set and reasonable.
+- [ ] Response status is checked for `2xx` before decoding.
+- [ ] SSL verification is **not** disabled in production.
+- [ ] SSRF protection is considered when working with user-provided URLs.
+- [ ] Binary data/files are downloaded via `download()` or streams, not read entirely into memory.
 
-## Чек-лист
-
-- [ ] Для каждого клиента заданы `socketTimeout` и `streamTimeout`.
-- [ ] Для запросов к внешним сервисам используется PSR-18 + типизированные исключения (`NetworkException`, `RequestException`, `ClientException`).
-- [ ] Большие/нестабильные запросы идут через `useCurl => true`.
-- [ ] Пользовательские URL проходят валидацию схемы/хоста, `privateIp = false`.
-- [ ] Секреты в заголовках, не в URL.
-- [ ] Ошибки логируются через PSR-3 (`main.HttpClient` или собственный `LoggerInterface` в сервисе).
-- [ ] Для массовых запросов — `sendAsyncRequest` + `Promise::wait()`.
+See skill `bitrix-security` for SSRF protection details.

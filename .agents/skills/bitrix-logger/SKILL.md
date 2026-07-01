@@ -1,28 +1,28 @@
 ---
 name: bitrix-logger
-description: Покрывает PSR-3 логирование в Bitrix — Bitrix\Main\Diag\Logger, FileLogger, SysLogger, NullLogger, LogFormatter, секция loggers в .settings.php, именованные логгеры ядра (main.HttpClient, main.Default, main.Mail, main.Engine), интеграция с Monolog и сторонними PSR-3 логгерами. Применяется при настройке логов модуля, отладке интеграций, сборе ошибок с конкретных компонентов ядра и ротации логов. Ключевые термины — Logger, FileLogger, SysLogger, LogFormatter, PSR-3, Monolog, loggers config, log level.
+description: Covers PSR-3 logging in Bitrix — Bitrix\Main\Diag\Logger, FileLogger, SysLogger, NullLogger, LogFormatter, loggers section in .settings.php, named kernel loggers (main.HttpClient, main.Default, main.Mail, main.Engine), integration with Monolog and third-party PSR-3 loggers. Applied when configuring module logs, debugging integrations, gathering errors from specific kernel components and log rotation. Key terms — Logger, FileLogger, SysLogger, LogFormatter, PSR-3, Monolog, loggers config, log level.
 ---
 
-# Логирование в Bitrix (PSR-3)
+# Logging in Bitrix (PSR-3)
 
-Bitrix следует стандарту PSR-3. В коде инжектируй `\Psr\Log\LoggerInterface`, а в `.settings.php` настраивай конкретную реализацию. Прямой вызов `AddMessage2Log` — легаси; в новом коде пиши через DI-логгер.
+Bitrix follows the PSR-3 standard. In code, inject `\Psr\Log\LoggerInterface`, and in `.settings.php`, configure the specific implementation. Direct calls to `AddMessage2Log` are legacy; in new code, write via DI logger.
 
-## Встроенные реализации
+## Built-in Implementations
 
-Все в неймспейсе `\Bitrix\Main\Diag\`:
+All are in the `\Bitrix\Main\Diag\` namespace:
 
-| Класс | Назначение |
+| Class | Purpose |
 | --- | --- |
-| `Logger` | Абстрактный базовый класс; `Logger::create('id', $params)` создаёт логгер через фабрику |
-| `FileLogger` | В файл, с авторотацией при превышении `$maxLogSize` (по умолчанию 1 МБ) |
-| `SysLogger` | В системный `syslog` через `openlog`/`syslog` |
-| `EventLogger` | В таблицу `b_event_log` (админка → Журнал событий) |
-| `LogFormatter` | Форматтер по умолчанию: подставляет `{placeholder}`, рендерит исключения и стеки |
-| `JsonLinesFormatter` | С 25.300.0; по строке JSON на запись, удобно для ELK/Loki |
+| `Logger` | Abstract base class; `Logger::create('id', $params)` creates a logger via factory |
+| `FileLogger` | Into a file, with auto-rotation when `$maxLogSize` is exceeded (default 1 MB) |
+| `SysLogger` | Into system `syslog` via `openlog`/`syslog` |
+| `EventLogger` | Into `b_event_log` table (Admin Panel → Event Log) |
+| `LogFormatter` | Default formatter: interpolates `{placeholder}`, renders exceptions and stacks |
+| `JsonLinesFormatter` | From 25.300.0; one JSON line per entry, convenient for ELK/Loki |
 
-Уровни — константы `\Psr\Log\LogLevel::*` (`emergency`, `alert`, `critical`, `error`, `warning`, `notice`, `info`, `debug`).
+Levels are constants of `\Psr\Log\LogLevel::*` (`emergency`, `alert`, `critical`, `error`, `warning`, `notice`, `info`, `debug`).
 
-## Сервис с логгером (DI — рекомендуется)
+## Service with Logger (DI — Recommended)
 
 ```php
 <?php declare(strict_types=1);
@@ -57,7 +57,7 @@ final class PostService
 }
 ```
 
-Регистрация в `/local/modules/vendor.module/.settings.php`:
+Registration in `/local/modules/vendor.module/.settings.php`:
 
 ```php
 'services' => [
@@ -73,9 +73,9 @@ final class PostService
 ],
 ```
 
-## Плейсхолдеры PSR-3
+## PSR-3 Placeholders
 
-Сообщение — шаблон с `{key}`, значения берутся из `$context`:
+Message is a template with `{key}`, values are taken from `$context`:
 
 ```php
 $logger->warning('User {userId} tried {action} on post {postId}', [
@@ -83,23 +83,23 @@ $logger->warning('User {userId} tried {action} on post {postId}', [
 ]);
 ```
 
-Специальные ключи, которые понимает `LogFormatter`:
+Special keys understood by `LogFormatter`:
 
-- `{date}` — текущее время (подставляется автоматически).
-- `{host}` — HTTP_HOST (автоматически).
-- `{delimiter}` — разделитель записей (автоматически).
-- `{exception}` — объект `\Throwable` → форматируется класс, сообщение, стек.
-- `{trace}` — ручной стек: `Diag\Helper::getBackTrace(6, DEBUG_BACKTRACE_IGNORE_ARGS, 3)`.
+- `{date}` — current time (interpolated automatically).
+- `{host}` — HTTP_HOST (automatic).
+- `{delimiter}` — entry separator (automatic).
+- `{exception}` — `\Throwable` object → formats class, message, stack trace.
+- `{trace}` — manual stack trace: `Diag\Helper::getBackTrace(6, DEBUG_BACKTRACE_IGNORE_ARGS, 3)`.
 
-Включить аргументы в стеке:
+Enable arguments in stack trace:
 
 ```php
 $logger->setFormatter(new \Bitrix\Main\Diag\LogFormatter(showArguments: true, argMaxChars: 120));
 ```
 
-## Настройка через `.settings.php` — секция `loggers`
+## Configuration via `.settings.php` — `loggers` section
 
-Позволяет переопределять логгеры именованных точек ядра (`main.HttpClient`, `main.Default`, `main.GeoIpManager`) и собственные идентификаторы.
+Allows overriding loggers for named kernel points (`main.HttpClient`, `main.Default`, `main.GeoIpManager`) and your own identifiers.
 
 ```php
 return [
@@ -147,31 +147,31 @@ return [
 ];
 ```
 
-### Важное
+### Important
 
-- Замыкания-`constructor` должны лежать в `.settings.php` / `.settings_extra.php` — файл **не редактируется** админкой, замыкание не сериализуется.
-- `level` — пороговый уровень; ниже него логгер игнорирует сообщения.
-- `formatter` — ключ из секции `services`.
-- Получение логгера в коде:
+- `constructor` closures must be in `.settings.php` / `.settings_extra.php` — the file **is not edited** by Admin Panel, closures are not serialized.
+- `level` — threshold level; logger ignores messages below this.
+- `formatter` — key from `services` section.
+- Retrieving logger in code:
 
     ```php
     $logger = \Bitrix\Main\Diag\Logger::create('vendor.module.myLogger');
     $logger = \Bitrix\Main\Diag\Logger::create('vendor.module.myLogger', [$this, $extraArg]);
     ```
 
-## Именованные точки ядра
+## Named Kernel Points
 
-| ID | Где используется | Параметры фабрики |
+| ID | Used In | Factory Parameters |
 | --- | --- | --- |
-| `main.Default` | `AddMessage2Log`, `CEventLog`, общий дефолт | `LOG_FILENAME`, `$showArgs` |
-| `main.HttpClient` | `Bitrix\Main\Web\HttpClient` (включая legacy и PSR-18) | `DebugInterface $debug`, `RequestInterface $request` |
+| `main.Default` | `AddMessage2Log`, `CEventLog`, general default | `LOG_FILENAME`, `$showArgs` |
+| `main.HttpClient` | `Bitrix\Main\Web\HttpClient` (including legacy and PSR-18) | `DebugInterface $debug`, `RequestInterface $request` |
 | `main.GeoIpManager` | `Bitrix\Main\Service\GeoIp\Manager` | — |
 
-Настройка этих логгеров перенаправляет все вызовы ядра — удобно для аудита внешних обращений (см. пример в `bitrix-http-client`).
+Configuring these loggers redirects all kernel calls — convenient for auditing external calls (see example in `bitrix-http-client`).
 
-## LoggerAware + фабрика
+## LoggerAware + Factory
 
-Для классов, которые нужно снабжать логгером «по идентификатору»:
+For classes that should be supplied with a logger "by identifier":
 
 ```php
 final class Indexer implements \Psr\Log\LoggerAwareInterface
@@ -194,81 +194,37 @@ final class Indexer implements \Psr\Log\LoggerAwareInterface
 }
 ```
 
-## Monolog через Composer
+## Monolog via Composer
 
 ```bash
 composer require monolog/monolog
 ```
 
+Integration into `.settings.php`:
+
 ```php
-'services' => [
+'loggers' => [
     'value' => [
-        \Vendor\Module\Application\Service\PostService::class => [
-            'constructor' => static function (): \Vendor\Module\Application\Service\PostService
-            {
-                $logger = new \Monolog\Logger('vendor.module');
-                $logger->pushHandler(new \Monolog\Handler\StreamHandler('/var/log/bitrix/post.log', \Monolog\Logger::INFO));
-                $logger->pushHandler(new \Monolog\Handler\ErrorLogHandler());
-                return new \Vendor\Module\Application\Service\PostService($logger);
+        'vendor.module.external' => [
+            'constructor' => static function () {
+                $log = new \Monolog\Logger('vendor.module');
+                $log->pushHandler(new \Monolog\Handler\StreamHandler('/var/log/bitrix/monolog.log'));
+                return $log;
             },
+            'level' => \Psr\Log\LogLevel::DEBUG,
         ],
     ],
-    'readonly' => true,
 ],
 ```
 
-Dev-окружению подойдёт `BrowserConsoleHandler` + `FingersCrossedHandler` на ошибках.
+## Checklist
 
-## `NullLogger` vs `if ($logger)`
+- [ ] PSR-3 standard followed (placeholders, context, exception key).
+- [ ] Loggers are configured via `.settings.php` rather than hardcoded in services.
+- [ ] Threshold `level` is set for each environment.
+- [ ] Loggers for external integrations (`HttpClient`) are redirected to separate files for audit.
+- [ ] For heavy load, `JsonLinesFormatter` is used for external collectors.
+- [ ] Logs are stored outside `DOCUMENT_ROOT` or protected by `.htaccess`.
+- [ ] Sensitive data (passwords, tokens) are stripped from context before logging.
 
-Используй `Psr\Log\NullLogger` как дефолт в конструкторе — не нужно проверять `null` перед вызовом. Сообщение и контекст формируются, даже если никуда не пишутся (не клади тяжёлые вычисления без проверки уровня).
-
-Проверка уровня (чтобы не строить дорогие строки):
-
-```php
-if ($this->logger instanceof \Psr\Log\LoggerInterface
-    && !$this->logger instanceof \Psr\Log\NullLogger)
-{
-    $this->logger->debug('Heavy dump: {data}', ['data' => $this->buildDump()]);
-}
-```
-
-## Контекст и чувствительные данные
-
-- Не клади токены/пароли в `$message` — только в `$context` с маскированием.
-- Для структурированных агрегаторов (ELK, Loki) — `JsonLinesFormatter` + поля в `$context`.
-- Ротацию файлов на продакшене лучше отдать `logrotate`, а `FileLogger::$maxLogSize = 0`.
-
-## Fatal / необработанные исключения
-
-Это **не** секция `loggers`. Конфигурируются в `exception_handling` внутри `.settings.php`:
-
-```php
-'exception_handling' => [
-    'value' => [
-        'debug' => false,         // true только на dev!
-        'log' => [
-            'settings' => ['file' => '/var/log/bitrix/exceptions.log'],
-            'class_name' => \Bitrix\Main\Diag\FileExceptionHandlerLog::class,
-        ],
-    ],
-    'readonly' => false,
-],
-```
-
-## Антипаттерны
-
-- `error_log(...)`/`echo` в проде — не попадает в централизованный сбор.
-- `AddMessage2Log($m)` без контекста; предпочти PSR-3 и структуру `context`.
-- Пароли/PII в сообщении лога.
-- `debug => true` в `exception_handling` на проде.
-- Логирование в цикле без уровня (`$logger->debug(...)` для сотен записей без `FingersCrossedHandler` / level-gate).
-
-## Чек-лист
-
-- [ ] Сервисы получают `LoggerInterface` через конструктор, дефолт — `NullLogger`.
-- [ ] В `.settings.php` секция `loggers` задаёт уровень и формат для `main.Default`, `main.HttpClient` и собственных id.
-- [ ] Сообщения содержат `{placeholder}` + `$context`, а не конкатенацию.
-- [ ] Исключения логируются с `'exception' => $e` — `LogFormatter` сам отрендерит стек.
-- [ ] Секреты и PII не попадают в лог.
-- [ ] Ротация настроена — либо `FileLogger` с `$maxLogSize`, либо внешний `logrotate`.
+Link `exception_handling.log` in `.settings.php` with named loggers for unified error tracking. See skill `bitrix-settings`.

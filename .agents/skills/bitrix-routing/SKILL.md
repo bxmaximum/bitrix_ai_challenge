@@ -1,24 +1,45 @@
 ---
 name: bitrix-routing
-description: Покрывает новую систему маршрутов Bitrix — RoutingConfigurator, файлы /local/routes/*.php (web.php, api.php), группы и префиксы, middleware, именованные маршруты, параметры и where-ограничения, генерация URL через UrlManager и route name. Применяется при создании публичных URL, REST-эндпоинтов, миграции с urlrewrite.php и подключении маршрутов модуля через секцию routing в .settings.php. Ключевые термины — route, RoutingConfigurator, web.php, api.php, prefix, middleware, urlrewrite, UrlManager.
+description: Covers the new Bitrix routing system — RoutingConfigurator, /local/routes/*.php files (web.php, api.php), groups and prefixes, named routes, parameters and where constraints, URL generation via router->route(). Applied when creating public URLs, REST endpoints, migrating from urlrewrite.php and connecting module routes via the routing section in .settings.php. Key terms — route, RoutingConfigurator, web.php, api.php, prefix, routing_index.php, urlrewrite.
 ---
 
-# Маршрутизация в Bitrix
+# Routing in Bitrix
 
-## Включение нового роутинга
+Requires **main 21.400.0+**.
 
-В `/local/.settings.php` (или `/bitrix/.settings.php`):
+## Enabling New Routing
+
+### Web server
+
+Route non-existent files to `routing_index.php`:
+
+**Apache** (`.htaccess`):
+
+```apache
+RewriteCond %{REQUEST_FILENAME} !/bitrix/routing_index.php$
+RewriteRule ^(.*)$ /bitrix/routing_index.php [L]
+```
+
+**Nginx**:
+
+```nginx
+try_files $uri $uri/ /bitrix/routing_index.php;
+```
+
+### `.settings.php`
+
+In `/local/.settings.php` (or `/bitrix/.settings.php`):
 
 ```php
 'routing' => [
     'value' => [
-        'config' => ['web.php'],             // файлы из /local/routes/ или /bitrix/routes/
+        'config' => ['web.php'],             // files from /local/routes/ or /bitrix/routes/
     ],
     'readonly' => true,
 ],
 ```
 
-В модульном `/local/modules/vendor.module/.settings.php`:
+In modular `/local/modules/vendor.module/.settings.php`:
 
 ```php
 'routing' => [
@@ -27,9 +48,11 @@ description: Покрывает новую систему маршрутов Bit
 ],
 ```
 
-Файлы роутинга ищутся сначала в `/local/routes/`, потом в `/bitrix/routes/`, модульные — в `/local/modules/<m>/routes/`.
+Routing files are searched in order: `/local/routes/`, then `/bitrix/routes/`, and modular ones in `/local/modules/<m>/routes/`.
 
-## Базовый `web.php`
+> **User routes belong only in `/local/routes/`.** `/bitrix/routes/` is reserved for the system.
+
+## Basic `web.php`
 
 ```php
 <?php declare(strict_types=1);
@@ -49,17 +72,17 @@ return function (RoutingConfigurator $routes): void {
 };
 ```
 
-## Поддерживаемые методы
+## Supported Methods
 
-- `get`, `post`, `put`, `patch`, `delete`, `head`, `options` — для конкретного HTTP-метода.
-- `any($uri, $handler)` — для любого метода.
-- `match(['GET', 'POST'], $uri, $handler)` — явный список методов.
+- `get`, `post`, `put`, `patch`, `delete`, `head`, `options` — for specific HTTP methods.
+- `any($uri, $handler)` — for any method.
+- `match(['GET', 'POST'], $uri, $handler)` — explicit list of methods.
 
-## Обработчики
+## Handlers
 
-Принимаются:
+Accepted:
 
-- `[Controller::class, 'actionMethod']` — метод контроллера Bitrix (без суффикса `Action`? **С суффиксом**, как есть: `createAction`).
+- `[Controller::class, 'actionMethod']` — Bitrix controller method (with `Action` suffix as is: `createAction`).
 - Callable/closure:
 
     ```php
@@ -68,26 +91,26 @@ return function (RoutingConfigurator $routes): void {
     });
     ```
 
-- Строка `Controller::class . '@actionMethod'`.
+- String `Controller::class . '@actionMethod'`.
 
-Возврат замыкания: `HttpResponse`, строка, массив (будет преобразован в JSON), `null`.
+Closure return: `HttpResponse`, string, array (converted to JSON), `null`.
 
-## Параметры маршрута
+## Route Parameters
 
-Фигурные скобки объявляют параметр:
+Curly braces declare a parameter:
 
 ```php
 $routes->get('/posts/{slug}', [Post::class, 'bySlugAction']);
 $routes->get('/users/{id}/posts/{postId?}', [Post::class, 'userPostsAction']);
 ```
 
-`{param?}` — необязательный (нужен `default`):
+`{param?}` is optional (requires a `default`):
 
 ```php
 $routes->get('/posts/{page?}', [Post::class, 'listAction'])->default('page', 1);
 ```
 
-Регулярка на параметр:
+Regex on parameter:
 
 ```php
 $routes->get('/posts/{id}', [Post::class, 'getAction'])
@@ -97,7 +120,7 @@ $routes->get('/{section}/{slug}', $handler)
     ->where(['section' => '[a-z]+', 'slug' => '[a-z0-9\-]+']);
 ```
 
-## Имена и генерация URL
+## Names and URL Generation
 
 ```php
 $routes->get('/posts/{id}', [Post::class, 'getAction'])
@@ -114,7 +137,7 @@ $url = (string)\Bitrix\Main\Application::getInstance()
 // /posts/42
 ```
 
-## Группы
+## Groups
 
 ```php
 $routes->group(['prefix' => '/api', 'name' => 'api.'], function (RoutingConfigurator $routes) {
@@ -127,9 +150,9 @@ $routes->group(['prefix' => '/api', 'name' => 'api.'], function (RoutingConfigur
 });
 ```
 
-Поддерживается объединение опций: `prefix`, `name` (префикс имени), `where` (регулярки для группы).
+Option merging is supported: `prefix`, `name` (name prefix), `where` (regexes for group).
 
-## Отдача view / компонента
+## Delivering view / component
 
 ```php
 $routes->get('/about', fn () => \Bitrix\Main\Engine\Response\Component::createByComponentName(
@@ -137,31 +160,32 @@ $routes->get('/about', fn () => \Bitrix\Main\Engine\Response\Component::createBy
 ));
 ```
 
-Или вернуть массив/объект — движок сериализует через `Engine\Response\Converter`.
+Or return an array/object — the engine serializes via `Engine\Response\Converter`.
 
-## Миграция с `urlrewrite.php`
+## Migration from `urlrewrite.php`
 
-1. Для **новых** маршрутов используй `web.php` — `urlrewrite.php` больше не нужен.
-2. Старый `urlrewrite.php` можно оставить для легаси ЧПУ компонентов: ядро обработает его до роутера.
-3. Правило миграции: запись
+1. For **new** routes, use `web.php` — `urlrewrite.php` is no longer needed.
+2. Old `urlrewrite.php` can be left for legacy component SEF: the kernel processes it before the router.
+3. Migration rule: entry
 
     ```php
     ['CONDITION' => '#^/catalog/section/(\d+)/?$#', 'RULE' => 'SECTION_ID=$1', 'PATH' => '/catalog/section.php']
     ```
 
-    заменяется на
+    is replaced by
 
     ```php
     $routes->get('/catalog/section/{id}', [Catalog::class, 'sectionAction'])->where('id', '\d+');
     ```
 
-4. Не забудь очистить кеш `urlrewrite`: `CUrlRewriter::ReIndexAll()`.
+4. Don't forget to clear `urlrewrite` cache: `CUrlRewriter::ReIndexAll()`.
 
-## Чек-лист
+## Checklist
 
-- [ ] `web.php` лежит в `/local/routes/` (или в модуле) и подключён в `.settings.php` через `routing.config`.
-- [ ] Для GET без побочных эффектов — `->get()`, для модификаций — `post/put/patch/delete`.
-- [ ] Все параметры с ограничениями через `->where(...)`.
-- [ ] Имена маршрутов уникальны и даны всем «важным» URL.
-- [ ] URL в коде и шаблонах генерируются через `router()->route('name', [...])`, а не склеиваются строками.
-- [ ] Для AJAX-эндпоинтов на публичных URL не забыт фильтр `Csrf` в контроллере.
+- [ ] Web server forwards to `routing_index.php`.
+- [ ] `web.php` is in `/local/routes/` (or in a module) and connected in `.settings.php` via `routing.config`.
+- [ ] For GET without side effects — `->get()`, for modifications — `post/put/patch/delete`.
+- [ ] All parameters have constraints via `->where(...)`.
+- [ ] Route names are unique and assigned to all "important" URLs.
+- [ ] URLs in code and templates are generated via `router()->route('name', [...])`, not string concatenation.
+- [ ] For AJAX endpoints on public URLs, the `Csrf` filter in the controller is not forgotten.

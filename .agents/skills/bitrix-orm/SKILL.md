@@ -1,20 +1,20 @@
 ---
 name: bitrix-orm
-description: Покрывает ORM Bitrix D7 — DataManager и Table-классы, getMap(), поля и связи (ScalarField, IntegerField, StringField, Reference, UField, ExpressionField), объектная работа через fetchObject/CollectionObject, add/update/delete, события таблиц (onBeforeAdd, onAfterUpdate, onDelete), query() с setSelect/setFilter/runtime/join. Применяется при проектировании сущностей, запросах к БД вместо сырого SQL, построении выборок и связей между таблицами. Ключевые термины — DataManager, Table, getMap, Reference, fetchObject, query, onBeforeAdd, ORM.
+description: Covers Bitrix D7 ORM — DataManager and Table classes, getMap(), fields and relations (ScalarField, IntegerField, StringField, Reference, UField, ExpressionField), object-oriented work via fetchObject/CollectionObject, add/update/delete, table events (onBeforeAdd, onAfterUpdate, onDelete), query() with setSelect/setFilter/runtime/join. Applied when designing entities, database queries instead of raw SQL, building selections and relationships between tables. Key terms — DataManager, Table, getMap, Reference, fetchObject, query, onBeforeAdd, ORM.
 ---
 
 # Bitrix D7 ORM
 
-Все Table-классы живут в `/local/modules/<m>/lib/Model/`. Имена оканчиваются на `Table` (`PostTable`). Имя без суффикса зарезервировано под класс объекта (`Post`).
+All Table classes live in `/local/modules/<m>/lib/Model/`. Names end in `Table` (`PostTable`). The name without the suffix is reserved for the object class (`Post`).
 
-Генерация:
+Generation:
 
 ```bash
 php bitrix/bitrix.php make:tablet my_post vendor.module
-php bitrix/bitrix.php orm:annotate -m vendor.module  # аннотации для IDE
+php bitrix/bitrix.php orm:annotate -m vendor.module  # IDE annotations
 ```
 
-## Скелет таблета
+## Tablet Skeleton
 
 ```php
 <?php declare(strict_types=1);
@@ -35,7 +35,7 @@ final class PostTable extends DataManager
 
     public static function getUfId(): string
     {
-        return 'VENDOR_MODULE_POST'; // если есть пользовательские поля
+        return 'VENDOR_MODULE_POST'; // if user fields are present
     }
 
     public static function isCacheable(): bool
@@ -79,20 +79,20 @@ final class PostTable extends DataManager
 }
 ```
 
-**Методы конфигурации вместо массивов**: `configureRequired`, `configurePrimary`, `configureAutocomplete`, `configureNullable`, `configureSize`, `configureDefaultValue`, `configureColumnName`, `configureTitle`. Старый формат с массивом `['primary' => true, 'required' => true]` всё ещё работает, но в новом коде предпочитай fluent API.
+**Configuration methods instead of arrays**: `configureRequired`, `configurePrimary`, `configureAutocomplete`, `configureNullable`, `configureSize`, `configureDefaultValue`, `configureColumnName`, `configureTitle`. The old format with array `['primary' => true, 'required' => true]` still works, but prefer fluent API in new code.
 
-## Типы полей
+## Field Types
 
-- `IntegerField`, `FloatField`, `DecimalField` — числовые.
-- `StringField`, `TextField` — строки/тексты.
-- `BooleanField` — `configureValues('N', 'Y')` хранит Y/N.
-- `DateField`, `DatetimeField` — возвращают `Bitrix\Main\Type\Date`/`DateTime`.
+- `IntegerField`, `FloatField`, `DecimalField` — numeric.
+- `StringField`, `TextField` — strings/texts.
+- `BooleanField` — `configureValues('N', 'Y')` stores Y/N.
+- `DateField`, `DatetimeField` — return `Bitrix\Main\Type\Date`/`DateTime`.
 - `EnumField` — `configureValues(['draft', 'published'])`.
-- `ArrayField` — массив, с собственным сериализатором.
-- `CryptoField`, `SecretField` — шифрование из коробки (см. `bitrix-security`).
-- `ExpressionField('FULL_NAME', 'CONCAT(%s, " ", %s)', ['NAME', 'LAST_NAME'])` — вычисляемое поле.
+- `ArrayField` — array, with its own serializer.
+- `CryptoField`, `SecretField` — built-in encryption (see `bitrix-security`).
+- `ExpressionField('FULL_NAME', 'CONCAT(%s, " ", %s)', ['NAME', 'LAST_NAME'])` — computed field.
 
-## Связи
+## Relations
 
 ```php
 (new Fields\Relations\Reference('AUTHOR', UserTable::class, ['=this.AUTHOR_ID' => 'ref.ID']))
@@ -107,9 +107,9 @@ final class PostTable extends DataManager
     ->configureRemotePrimary('ID', 'TAG_ID'),
 ```
 
-## Чтение данных
+## Reading Data
 
-### Массивы (`fetch`)
+### Arrays (`fetch`)
 
 ```php
 $rows = PostTable::getList([
@@ -122,7 +122,7 @@ $rows = PostTable::getList([
 ])->fetchAll();
 ```
 
-### Объекты (`fetchObject`, `fetchCollection`)
+### Objects (`fetchObject`, `fetchCollection`)
 
 ```php
 $post = PostTable::getByPrimary($id, [
@@ -144,7 +144,7 @@ foreach ($collection as $post)
 }
 ```
 
-### Query builder
+### Query Builder
 
 ```php
 $query = PostTable::query()
@@ -162,9 +162,9 @@ $query = PostTable::query()
 $result = $query->fetchAll();
 ```
 
-## Запись
+## Writing
 
-### Массивы
+### Arrays
 
 ```php
 $add = PostTable::add(['TITLE' => 'Hi', 'AUTHOR_ID' => 1]);
@@ -179,10 +179,10 @@ PostTable::update($id, ['TITLE' => 'Hello']);
 PostTable::delete($id);
 ```
 
-### Объекты
+### Objects
 
 ```php
-$post = new \Vendor\Module\Model\EO_Post();  // или PostTable::createObject();
+$post = new \Vendor\Module\Model\EO_Post();  // or PostTable::createObject();
 $post->setTitle('Title')
      ->setBody('Body')
      ->setAuthorId($currentUserId);
@@ -197,51 +197,84 @@ $loaded->save();
 $loaded->delete();
 ```
 
-Коллекции:
+Collections:
 
 ```php
-$collection = PostTable::query()->where('ACTIVE', 'N')->fetchCollection();
-foreach ($collection as $post) { $post->setActive('Y'); }
-$collection->save();
-$collection->delete();  // групповое удаление
+$collection = PostTable::query()->whereIn('ID', [1, 2])->fetchCollection();
+foreach ($collection as $post)
+{
+    $post->setActive(false);
+}
+$collection->save(); // one query for all
 ```
 
-## События таблеты
+## Collections and Annotations
 
-Кастомизируй из таблета:
+After `orm:annotate`, IDE gets types like `EO_Post`, `EO_Post_Collection`, `EO_Post_Query`:
+
+```php
+/** @var \Vendor\Module\Model\EO_Post $post */
+$post = PostTable::getByPrimary($id)->fetchObject();
+
+/** @var \Vendor\Module\Model\EO_Post_Collection $posts */
+$posts = PostTable::query()->where('ACTIVE', 'Y')->fetchCollection();
+```
+
+Collection methods: `save()`, `delete()`, `fill()` (eager load relations). Use `fetchCollection()` instead of looping `fetchObject()` to avoid N+1.
+
+### Query builder vs `getList`
+
+- `getList(['select' => ..., 'filter' => ...])` — array API, good for simple queries.
+- `PostTable::query()->setSelect()->where()->fetchCollection()` — fluent builder, better for dynamic conditions and runtime fields.
+
+## Events
+
+In the tablet class:
 
 ```php
 public static function onBeforeAdd(\Bitrix\Main\ORM\Event $event): \Bitrix\Main\ORM\EventResult
 {
     $result = new \Bitrix\Main\ORM\EventResult();
-    $data = $event->getParameter('fields');
+    $fields = $event->getParameter('fields');
 
-    if (empty($data['SLUG']) && !empty($data['TITLE']))
+    if (empty($fields['TITLE']))
     {
-        $result->modifyFields(['SLUG' => \CUtil::translit($data['TITLE'], 'ru')]);
+        $result->addError(new \Bitrix\Main\ORM\EntityError('Title is required'));
     }
+
+    // Modification:
+    $result->modifyFields(['TITLE' => strtoupper($fields['TITLE'])]);
 
     return $result;
 }
 ```
 
-Также: `onBeforeUpdate`, `onAfterUpdate`, `onBeforeDelete`, `onAfterDelete`, `onAfterAdd`. Для системных событий регистрируй обработчики через `EventManager` (см. `bitrix-events`).
+Events: `onBeforeAdd`, `onAfterAdd`, `onBeforeUpdate`, `onAfterUpdate`, `onBeforeDelete`, `onAfterDelete`.
 
-## Пользовательские поля (UF_*)
+## Caching
 
-Подключи `getUfId()` в таблете — тогда они автоматически читаются/пишутся в ORM и видны в админке.
+```php
+'cache' => [
+    'ttl' => 3600,
+    'cache_joins' => true,
+]
+```
 
-## Кеширование запросов
+To automatically clear cache on update, the tablet must return `true` in `isCacheable()`.
 
-- `['cache' => ['ttl' => 3600, 'cache_joins' => true]]` — кеш запроса на TTL.
-- Таблет с `isCacheable()` + `ManagedCache` + `TaggedCache` по tag `ORM_VENDOR_MODULE_POST` — см. `bitrix-caching`.
+## User Fields (UF)
 
-## Чек-лист
+If `getUfId()` returns a string, UF fields are automatically available in `select` and `filter`. In the object, they are accessed via `get('UF_FIELD')` / `set('UF_FIELD', $v)`.
 
-- [ ] Имя класса — `*Table`, таблица — `snake_case` с префиксом модуля.
-- [ ] Поля сконфигурированы fluent-API, указаны `nullable`/`required`/`size`.
-- [ ] Связи используют `Reference`/`OneToMany`/`ManyToMany` вместо ручных `JOIN`-строк.
-- [ ] `isCacheable()` включён там, где данные редко меняются.
-- [ ] Чтение — через `fetchObject`/`fetchCollection`; работа со `stdClass`-массивами — только при массовых выборках для отчётов.
-- [ ] Запись/изменение проходят через сервис, не прямо из контроллера.
-- [ ] Пользовательский ввод **не** кладётся сырьём в `select`, `filter`, `SqlExpression`, `ExpressionField`, `runtime` (см. `bitrix-security`).
+## Checklist
+
+- [ ] Tablet class lives in `lib/Model/` and ends in `Table`.
+- [ ] Primary keys are correctly defined (`configurePrimary`).
+- [ ] Relationships use `Reference`, `OneToMany`, or `ManyToMany`.
+- [ ] Fluent API (`configureXxx`) is used for field descriptions.
+- [ ] Objects (`fetchObject`) are used for business logic, arrays (`fetch`) for simple lists.
+- [ ] Cache is enabled (`isCacheable`) where necessary.
+- [ ] Table creation/deletion is handled via Entity.
+- [ ] Events are implemented in the tablet, not in the service.
+- [ ] Validations use `addValidator`.
+- [ ] `orm:annotate` is run to support IDE.

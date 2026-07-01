@@ -1,15 +1,15 @@
 ---
 name: bitrix-localization
-description: Покрывает локализацию Bitrix — Bitrix\Main\Localization\Loc, языковые файлы lang/<код>/, loadMessages, плейсхолдеры в getMessage, Context::getCulture() и форматы культур, JS-локализация через BX.message и $Bitrix.Loc, translate:index для индексации фраз. Применяется при добавлении и переводе фраз, работе с несколькими языками сайта, JS-переводах компонентов и шаблонов. Ключевые термины — Loc, getMessage, lang file, Culture, BX.message, loadMessages, i18n.
+description: Covers Bitrix localization — Bitrix\Main\Localization\Loc, lang/<code/>/ language files, loadMessages, placeholders in getMessage, Context::getCulture() and culture formats, JS localization via BX.message and $Bitrix.Loc, translate:index for phrase indexing. Applied when adding and translating phrases, working with multi-language sites, JS translations in components and templates. Key terms — Loc, getMessage, lang file, Culture, BX.message, loadMessages, i18n.
 ---
 
-# Локализация
+# Localization
 
-## Языковой файл
+## Language File
 
-- Кодировка **UTF-8 без BOM**.
-- Имя файла перевода **совпадает** с именем PHP-файла, рядом с которым лежит.
-- Папка: `.../lang/<lang>/<...>` зеркалит структуру основного кода.
+- Encoding **UTF-8 without BOM**.
+- Translation file name **matches** the name of the PHP file it accompanies.
+- Folder: `.../lang/<lang>/<...>` mirrors the structure of the main code.
 
 ```
 /local/modules/vendor.module/lib/Application/Service/PostService.php
@@ -17,80 +17,80 @@ description: Покрывает локализацию Bitrix — Bitrix\Main\Lo
 /local/modules/vendor.module/lib/Application/Service/lang/en/PostService.php
 ```
 
-Содержимое:
+Content:
 
 ```php
 <?php
-$MESS['VENDOR_MODULE_POST_PUBLISHED'] = 'Пост #NAME# опубликован';
-$MESS['VENDOR_MODULE_POST_EMPTY_TITLE'] = 'Не заполнено название поста';
+$MESS['VENDOR_MODULE_POST_PUBLISHED'] = 'Post #NAME# published';
+$MESS['VENDOR_MODULE_POST_EMPTY_TITLE'] = 'Post title is empty';
 ```
 
-Правила префиксов: `<VENDOR>_<MODULE>_<CONTEXT>_<CODE>` — короткий уникальный ключ. Без префикса легко получить конфликт с другими модулями.
+Prefix rules: `<VENDOR>_<MODULE>_<CONTEXT>_<CODE>` — a short unique key. Without a prefix, conflicts with other modules are likely.
 
-## `Loc::getMessage` и `Loc::loadMessages`
+## `Loc::getMessage` and `Loc::loadMessages`
 
 ```php
 use Bitrix\Main\Localization\Loc;
 
-Loc::loadMessages(__FILE__); // зная, где мы — ядро найдёт файл перевода
+Loc::loadMessages(__FILE__); // knowing where we are — the kernel will find the translation file
 
 echo Loc::getMessage('VENDOR_MODULE_POST_PUBLISHED', ['#NAME#' => $post->getTitle()]);
 echo Loc::getMessage('VENDOR_MODULE_POST_PUBLISHED', ['#NAME#' => 'x'], 'en');
 ```
 
-- Сигнатура: `Loc::getMessage(string $code, ?array $replace = null, ?string $language = null)`.
-- Подстановки — по шаблонам `#PLACEHOLDER#` (историческая конвенция). Ключи в `$replace` — с решётками.
-- `$language` — ID языка (`ru`, `en`). Если не передать — текущий язык сайта.
+- Signature: `Loc::getMessage(string $code, ?array $replace = null, ?string $language = null)`.
+- Substitutions — via `#PLACEHOLDER#` templates (historical convention). Keys in `$replace` — with hash marks.
+- `$language` — language ID (`ru`, `en`). If not passed — current site language.
 
-### Когда нужно явно подключать
+### When Explicit Loading is Needed
 
-Для компонентов, шаблонов компонентов, шаблонов сайта, admin-файлов Bitrix сам подключит соседние `lang/<lang>/<тот_же_файл>.php`. Вручную вызывай `Loc::loadMessages(__FILE__)` если:
+For components, component templates, site templates, and Bitrix admin files, the kernel will automatically include neighboring `lang/<lang>/<same_file>.php`. Manually call `Loc::loadMessages(__FILE__)` if:
 
-- Файл лежит вне стандартной структуры (например, `/local/php_interface/`).
-- У тебя собственный загрузчик/класс — каждый файл должен **сам** подключать свои переводы, иначе сломается отложенная загрузка.
+- The file is outside the standard structure (e.g., `/local/php_interface/`).
+- You have your own loader/class — each file must **itself** include its translations, otherwise lazy loading will break.
 
-### Произвольный файл
+### Arbitrary File
 
 ```php
 Loc::loadLanguageFile($_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/custom.php');
 ```
 
-### Язык по умолчанию модуля
+### Module Default Language
 
 ```php
-$lang = Loc::getDefaultLang(LANGUAGE_ID); // fallback из настроек языка: 'ru' → 'ru', 'ua' → 'ru'
+$lang = Loc::getDefaultLang(LANGUAGE_ID); // fallback from language settings: 'ru' → 'ru', 'ua' → 'ru'
 ```
 
-Используй при формировании имён языковых пакетов, если язык проекта шире, чем поддерживаемые в модуле (`ua`, `kz` → «опустить» до `ru`).
+Use this when forming language package names if the project language is broader than those supported in the module (`ua`, `kz` → "fall back" to `ru`).
 
-## Отложенная загрузка и `BX_MESS_LOG`
+## Lazy Loading and `BX_MESS_LOG`
 
-Ядро подгружает языковой файл **только при первом** `getMessage(...)` из него — соответствие «PHP-файл ↔ языковой файл» должно быть строгим. Если вызов `getMessage('FOO_BAR')` идёт из одного файла, а фраза определена в соседнем, ядро начнёт сканировать все подряд файлы — это тормозит.
+The kernel loads a language file **only upon the first** `getMessage(...)` call from it — the "PHP file ↔ language file" mapping must be strict. If a `getMessage('FOO_BAR')` call comes from one file while the phrase is defined in another, the kernel will start scanning all files — this slows things down.
 
-Диагностика: включи в `/local/php_interface/init.php`:
+Diagnostics: enable in `/local/php_interface/init.php`:
 
 ```php
 define('BX_MESS_LOG', $_SERVER['DOCUMENT_ROOT'] . '/var/log/bitrix/mess.log');
 ```
 
-В лог попадут записи формата:
+The log will contain entries like:
 
 ```
 [ru]SOME_MESSAGE: not found for /path/to/file.php
 CTranslateUtils::CopyMessage('DEMO_CODE', '/path/a.php', '/path/b.php');
 ```
 
-Как исправлять:
+How to fix:
 
-- **Скопировать** фразу в языковой файл того модуля/кода, откуда идёт `getMessage`.
-- **Переименовать** код на уникальный, если пересекается с ядром.
-- **Перенести код** в правильный файл, если физически оказался не там.
+- **Copy** the phrase to the language file of the module/code where the `getMessage` call originates.
+- **Rename** the code to something unique if it conflicts with the kernel.
+- **Move the code** to the correct file if it physically ended up in the wrong place.
 
-Не копируй автоматически — можно задвоить, изучи причину.
+Do not copy automatically — you might duplicate phrases; investigate the cause.
 
-## Региональные настройки (`Culture`)
+## Regional Settings (`Culture`)
 
-Форматы даты/времени/имени берутся из `Bitrix\Main\Context\Culture`:
+Date/time/name formats are retrieved from `Bitrix\Main\Context\Culture`:
 
 ```php
 $culture = \Bitrix\Main\Context::getCurrent()->getCulture();
@@ -103,7 +103,7 @@ $culture->getNumberDecSeparator();
 $culture->getNumberThousandsSeparator();
 ```
 
-Форматирование:
+Formatting:
 
 ```php
 use Bitrix\Main\Type\DateTime;
@@ -111,16 +111,16 @@ use Bitrix\Main\Type\DateTime;
 $date = new DateTime();
 echo $date->format($culture->getDateTimeFormat());
 
-// Через классические хелперы:
+// Via classic helpers:
 echo \FormatDate($culture->getDateFormat(), $date->getTimestamp());
 echo \CurrencyFormat(1234.5, 'RUB');
 ```
 
-Настройка языков: *Настройки → Настройки продукта → Языковые параметры* (формат даты/времени/имени задаётся для языка сайта). Если компонент настроен на собственный формат — он выиграет.
+Language setup: *Settings → Product Settings → Language Parameters* (date/time/name formats are set per site language). If a component is configured for its own format — it will take precedence.
 
-## Установка фраз в JavaScript
+## Setting Phrases in JavaScript
 
-PHP-код публикует фразы в `BX.message(...)`:
+PHP code publishes phrases in `BX.message(...)`:
 
 ```php
 \Bitrix\Main\Page\Asset::getInstance()->addString(
@@ -131,7 +131,7 @@ PHP-код публикует фразы в `BX.message(...)`:
 );
 ```
 
-Или — более идиоматично — через JS-расширение (extension) в `config.php`:
+Or — more idiomatically — via a JS extension in `config.php`:
 
 ```php
 return [
@@ -147,7 +147,7 @@ return [
 ```js
 BX.message('VENDOR_POST_SAVE');
 
-BX.message({ VENDOR_POST_DYNAMIC: 'Загружено асинхронно' });
+BX.message({ VENDOR_POST_DYNAMIC: 'Loaded asynchronously' });
 
 const welcome = BX.message('WELCOME_TEXT').replace('#NAME#', userName);
 ```
@@ -158,13 +158,13 @@ const welcome = BX.message('WELCOME_TEXT').replace('#NAME#', userName);
 // template
 <button>{{ $Bitrix.Loc.getMessage('UI_BUTTON_SAVE') }}</button>
 
-// с заменой + реактивность
+// with replacement + reactivity
 {{ $Bitrix.Loc.getMessage('DEMO_COUNTER', { '#COUNTER#': this.counter }) }}
 
-// программно
-this.$Bitrix.Loc.setMessage({ DEMO_COUNTER: 'Счётчик: #COUNTER#' });
+// programmatically
+this.$Bitrix.Loc.setMessage({ DEMO_COUNTER: 'Counter: #COUNTER#' });
 
-// оптимизация для тяжёлых шаблонов
+// optimization for heavy templates
 import { BitrixVue } from 'ui.vue3';
 
 computed: {
@@ -172,37 +172,28 @@ computed: {
 }
 ```
 
-## Команда `translate:index`
+## `translate:index` Command
 
 ```bash
 php bitrix/bitrix.php translate:index
 ```
 
-Индексирует языковые файлы, чтобы работала страница *Настройки → Локализация → Просмотр файлов* (экспорт/импорт CSV, сборка пакетов). Запускай после массового добавления новых фраз в модуль.
+Indexes language files so that the *Settings → Localization → View Files* page works (CSV export/import, package building). Run this after bulk adding new phrases to a module.
 
-## Мультиязычные модули
+## Multilingual Modules
 
-- Храни фразы `lang/ru/`, `lang/en/`, `lang/de/` — в корне PHP-файла, который их использует.
-- В `install/index.php` модуля подключай переводы: `Loc::loadMessages(__FILE__)`.
-- `Loc::getDefaultLang(LANGUAGE_ID)` используй, чтобы «упасть» на базовый язык модуля (`ru`), если нет `kz`/`ua`.
-- Публикуй названия языков в системе через форму *Языки интерфейса* — её нельзя задать из `.settings.php`.
+- Store phrases in `lang/ru/`, `lang/en/`, `lang/de/` — in the root of the PHP file that uses them.
+- In the module's `install/index.php`, include translations: `Loc::loadMessages(__FILE__)`.
+- Use `Loc::getDefaultLang(LANGUAGE_ID)` to "fall back" to the module's base language (`ru`) if `kz`/`ua` is missing.
+- Publish language names in the system via the *Interface Languages* form — it cannot be set from `.settings.php`.
 
-## Антипаттерны
+## Antipatterns
 
-- Хардкод русских строк в сервисе/контроллере. Тексты ошибок `Error` — через `Loc::getMessage`.
-- `getMessage('CODE')` в одном файле, когда фраза определена в соседнем → сканирование всех файлов, замедление.
-- Копирование фраз между модулями по `BX_MESS_LOG` без анализа — рискуешь задвоить и запутать.
-- Вывод дат через `date('d.m.Y')` вместо `Culture::getDateFormat()` — ломает мультиязычные проекты.
-- Смешение UTF-8 и CP1251 в `lang/` — Bitrix «пере-конвертирует», и ты получаешь кракозябры.
-- JS-фразы, прописываемые строкой из PHP без `htmlspecialcharsbx` для заголовков, которые идут в атрибуты.
+- Hardcoding strings in services/controllers. `Error` message texts should be via `Loc::getMessage`.
+- `getMessage('CODE')` in one file when the phrase is defined in another → scanning all files, slowdown.
+- Copying phrases between modules via `BX_MESS_LOG` without analysis — risk of duplication and confusion.
+- Outputting dates via `date('d.m.Y')` instead of `Culture::getDateFormat()` — breaks multilingual projects.
+- Mixing UTF-8 and CP1251 in `lang/` — Bitrix will "re-convert" and you'll get garbled text.
+- JS phrases written as strings from PHP without `htmlspecialcharsbx` for headers going into attributes.
 
-## Чек-лист
-
-- [ ] Для каждого PHP-файла с `Loc::getMessage` есть соседний `lang/<lang>/<file>.php`.
-- [ ] `Loc::loadMessages(__FILE__)` стоит в начале файла, если он вне стандартной структуры компонентов/модулей.
-- [ ] Коды фраз начинаются с уникального префикса `VENDOR_MODULE_`.
-- [ ] Замены в переводах используют формат `#PLACEHOLDER#`.
-- [ ] На dev-окружении включена `BX_MESS_LOG`; проблемные фразы перенесены/переименованы.
-- [ ] Форматы даты/чисел/имени в UI идут через `Context::getCulture()`, а не захардкожены.
-- [ ] JS-фразы публикуются через `lang_additional` extension'а или ручной `BX.message({...})`.
-- [ ] После массового добавления переводов запускается `php bitrix/bitrix.php translate:index`.
+Set `default_language` in `.settings.php` for kernel default. BitrixVue 3 localization: skill `bitrix-vue`.

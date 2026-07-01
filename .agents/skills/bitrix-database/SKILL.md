@@ -1,18 +1,18 @@
 ---
 name: bitrix-database
-description: Покрывает прямую работу с базой Bitrix — Application::getConnection(), Connection, MysqliConnection, SqlHelper, SqlExpression, сырые SQL-запросы через query()/queryExecute()/queryScalar(), транзакции (startTransaction/commitTransaction/rollbackTransaction), DDL и миграции схем, bulk-операции (insertBatch, addMulti), дополнительные подключения через секцию connections в .settings.php. Применяется когда ORM недостаточно — массовые операции, raw SQL, миграции, работа с внешними базами и построение кастомных запросов. Ключевые термины — Connection, SqlHelper, SqlExpression, transaction, raw SQL, bulk insert, DDL, migration.
+description: Covers direct database work in Bitrix — Application::getConnection(), Connection, MysqliConnection, SqlHelper, SqlExpression, raw SQL queries via query()/queryExecute()/queryScalar(), transactions (startTransaction/commitTransaction/rollbackTransaction), DDL and schema migrations, bulk operations (insertBatch, addMulti), additional connections via the connections section in .settings.php. Applied when ORM is insufficient — bulk operations, raw SQL, migrations, working with external databases, and building custom queries. Key terms — Connection, SqlHelper, SqlExpression, transaction, raw SQL, bulk insert, DDL, migration.
 ---
 
-# Работа с БД напрямую
+# Direct Database Work
 
-ORM — первая линия выбора (`bitrix-orm`). Прямой SQL нужен для:
+ORM is the first choice (`bitrix-orm`). Direct SQL is needed for:
 
-- миграций/DDL в `install/index.php` / `updater.php`,
-- массовых операций (`UPSERT`, `REPLACE`, окна/CTE),
-- отчётов с `GROUP BY`/агрегатами, которые громоздко собирать через ORM,
-- работы с несколькими соединениями (аналитическая реплика, Redis).
+- Migrations/DDL in `install/index.php` / `updater.php`,
+- Bulk operations (`UPSERT`, `REPLACE`, windows/CTE),
+- Reports with `GROUP BY`/aggregates that are cumbersome to build via ORM,
+- Working with multiple connections (analytical replica, Redis).
 
-## Соединение
+## Connection
 
 ```php
 use Bitrix\Main\Application;
@@ -21,10 +21,10 @@ use Bitrix\Main\DB\Connection;
 /** @var Connection $db */
 $db = Application::getConnection();           // default
 $db = Application::getConnection('default');
-$analytics = Application::getConnection('analytics'); // дополнительный
+$analytics = Application::getConnection('analytics'); // additional
 ```
 
-## Конфигурация в `.settings.php`
+## Configuration in `.settings.php`
 
 ```php
 'connections' => [
@@ -35,7 +35,7 @@ $analytics = Application::getConnection('analytics'); // дополнитель�
             'database'  => 'bx',
             'login'     => 'bx',
             'password'  => '***',
-            'options'   => \Bitrix\Main\DB\Connection::DEFERRED, // 2 — коннект при первом запросе
+            'options'   => \Bitrix\Main\DB\Connection::DEFERRED, // 2 — connect on first query
         ],
         'analytics' => [
             'className' => \Bitrix\Main\DB\PgsqlConnection::class,
@@ -58,15 +58,15 @@ $analytics = Application::getConnection('analytics'); // дополнитель�
 ],
 ```
 
-`options`: `Connection::PERSISTENT = 1`, `Connection::DEFERRED = 2`, комбинируются битовой ИЛИ (`3`).
+`options`: `Connection::PERSISTENT = 1`, `Connection::DEFERRED = 2`, combined via bitwise OR (`3`).
 
-Классы:
+Classes:
 
 - `\Bitrix\Main\DB\MysqliConnection` — MySQL (`mysqli`).
 - `\Bitrix\Main\DB\PgsqlConnection` — PostgreSQL.
-- `\Bitrix\Main\DB\MssqlConnection`, `\Bitrix\Main\DB\OracleConnection` — редко.
+- `\Bitrix\Main\DB\MssqlConnection`, `\Bitrix\Main\DB\OracleConnection` — rare.
 - `\Bitrix\Main\Data\MemcacheConnection`, `MemcachedConnection`, `RedisConnection`.
-- `\Bitrix\Main\Data\HsphpReadConnection` — HandlerSocket (read-only, для высоконагруженных `SELECT` по первичному ключу в обход SQL).
+- `\Bitrix\Main\Data\HsphpReadConnection` — HandlerSocket (read-only, for high-load `SELECT` by primary key bypassing SQL).
 
 ## SELECT
 
@@ -85,13 +85,13 @@ foreach ($rs as $row) { /* ... */ }
 $id = $db->queryScalar('SELECT COUNT(*) FROM b_user WHERE ACTIVE = "Y"');
 ```
 
-- `fetch()` — значения **прогоняются через конвертеры полей** (дата → `Bitrix\Main\Type\DateTime`).
-- `fetchRaw()` — как пришло из драйвера.
-- `$result->getSelectedRowsCount()`, `$result->getFields()`, `$result->getResource()` (низкоуровневый `mysqli_result`).
+- `fetch()` — values are **processed through field converters** (date → `Bitrix\Main\Type\DateTime`).
+- `fetchRaw()` — as received from the driver.
+- `$result->getSelectedRowsCount()`, `$result->getFields()`, `$result->getResource()` (low-level `mysqli_result`).
 
-Важно: `Result` нельзя «перемотать» — если нужен повторный проход, материализуй в массив.
+Important: `Result` cannot be "rewound" — if a second pass is needed, materialize it into an array.
 
-### Пользовательские конвертеры
+### Custom Converters
 
 ```php
 $rs = $db->query('SELECT ID, ACTIVE, DATE_REGISTER FROM b_user');
@@ -107,7 +107,7 @@ $rs->addFetchDataModifier(static function (array $row): array {
 ```php
 $id = $db->add('my_table', [
     'NAME'    => 'example',
-    'CONTENT' => $raw,              // экранируется автоматически
+    'CONTENT' => $raw,              // automatically escaped
 ]);
 
 $lastId = $db->addMulti('my_table', [
@@ -120,22 +120,22 @@ $db->queryExecute(
 );
 ```
 
-`add`/`addMulti` молча **отбрасывают ключи** с несуществующими колонками и сами экранируют значения. Удобно для фикстур и миграций.
+`add`/`addMulti` silently **discard keys** with non-existent columns and escape values themselves. Convenient for fixtures and migrations.
 
-> ВАЖНО: параметр `$binds` в `query/queryScalar/queryExecute` **не** делает подготовленные выражения — это лишь плейсхолдеры для LOB'ов у некоторых драйверов. От SQL-инъекций защищайся через `SqlExpression` или `SqlHelper`.
+> IMPORTANT: the `$binds` parameter in `query/queryScalar/queryExecute` **does not** create prepared statements — these are only placeholders for LOBs in some drivers. Protect against SQL injections via `SqlExpression` or `SqlHelper`.
 
-## SqlHelper — экранирование и утилиты
+## SqlHelper — Escaping and Utilities
 
 ```php
 $h = $db->getSqlHelper();
 
 $h->quote('table.id');            // `table`.`id`
-$h->forSql($userInput);           // не " безопасная ' → не \" безопасная \'
+$h->forSql($userInput);           // escapes quotes
 $h->convertToDb($value);          // 'v' | 'NULL' | '123'
 $h->convertToDbString(null);      // ''
-$h->convertToDbString('long', 5); // 'long '  (обрезано)
+$h->convertToDbString('long', 5); // 'long '  (truncated)
 $h->convertToDbInteger('x');      // 0
-$h->convertToDbInteger(1e10, 4);  // 2147483647 — ограничение 4 байта
+$h->convertToDbInteger(1e10, 4);  // 2147483647 — 4 byte limit
 $h->convertToDbFloat(1.2345, 1);  // '1.2'
 $h->convertToDbDate(new \Bitrix\Main\Type\Date('01.01.2025'));      // '2025-01-01'
 $h->convertToDbDateTime(new \Bitrix\Main\Type\DateTime());
@@ -148,7 +148,7 @@ $h->getIsNullFunction($h->quote('a'), 0);          // IFNULL(`a`, 0)
 $h->getMatchFunction($h->quote('body'), $h->convertToDb('bitrix')); // MATCH ... AGAINST
 ```
 
-Аргументы SQL-функций **не экранируются автоматически** — пропускай через `quote`/`convertToDb` сам.
+SQL function arguments **are not automatically escaped** — pass them through `quote`/`convertToDb` yourself.
 
 ## UPSERT (`prepareMerge*`)
 
@@ -162,9 +162,9 @@ $h->getMatchFunction($h->quote('body'), $h->convertToDb('bitrix')); // MATCH ...
 $db->queryExecute($sql);
 ```
 
-Есть ещё `prepareMergeValues` (сразу много строк), `prepareMergeSelect` (из подзапроса), `prepareMergeMultiple` (`REPLACE INTO`, делит пачки для больших bulk'ов).
+There are also `prepareMergeValues` (multiple rows at once), `prepareMergeSelect` (from subquery), `prepareMergeMultiple` (`REPLACE INTO`, splits batches for large bulks).
 
-## SqlExpression — параметризованные запросы
+## SqlExpression — Parameterized Queries
 
 ```php
 use Bitrix\Main\DB\SqlExpression;
@@ -179,127 +179,54 @@ $sql = new SqlExpression(
 );
 
 $db->query($sql);
-echo (string)$sql; // скомпилированный SQL
+echo (string)$sql; // compiled SQL
 ```
 
-Плейсхолдеры:
+Placeholders:
 
-- `?` — авто: строки, числа, `Date/DateTime`, `null` → `NULL`.
-- `?s` — строка.
-- `?i` — целое.
+- `?` — auto: strings, numbers, `Date/DateTime`, `null` → `NULL`.
+- `?s` — string.
+- `?i` — integer.
 - `?f` — float.
-- `?#` — идентификатор (имя таблицы/колонки, обёрнуто в кавычки).
-- `?v` — `VALUES(...)` для INSERT/UPDATE.
+- `?#` — identifier (table/column name, wrapped in quotes).
+- `?v` — `VALUES(...)` for INSERT/UPDATE.
 
-Для дат в `Date`/`DateTime` используй `?` — получишь `'2025-01-01 00:00:00'`; `?s` даст строковое представление в формате сайта.
+For dates in `Date`/`DateTime` use `?` — you'll get `'2025-01-01 00:00:00'`; `?s` will give string representation in site format.
 
-## Транзакции
+## Transactions
 
 ```php
 $db = Application::getConnection();
-
-try
-{
-    $db->startTransaction();
-
-    $db->queryExecute("UPDATE b_user SET ACTIVE = 'N' WHERE ID = " . (int)$id);
-    \Bitrix\Main\UserTable::update($id, ['LAST_LOGIN' => null]);
-
+$db->startTransaction();
+try {
+    $db->queryExecute('...');
     $db->commitTransaction();
-}
-catch (\Throwable $e)
-{
+} catch (\Throwable $e) {
     $db->rollbackTransaction();
     throw $e;
 }
 ```
 
-Правила:
+Keep transactions short. ORM operations inside a transaction are supported — use the same connection.
 
-- Держи транзакции **короткими**. Никакого HTTP или долгой логики внутри.
-- ORM-операции участвуют в транзакции того же соединения. Если у `DataManager` переопределено `getConnectionName` — следи, что транзакция открыта на **том же** соединении.
+## SqlTracker
 
-### Вложенные транзакции
-
-Вложенные `startTransaction` создают `SAVEPOINT`. `commitTransaction` внутренней — ничего не коммитит в БД. `rollbackTransaction` внутренней — откат до точки + `TransactionException`.
-
-Рекомендуемый паттерн — **не откатывать внутри** вложенной:
+Enable SQL query logging for debugging:
 
 ```php
-try
-{
-    $db->startTransaction();
-
-    try { updateOrders($id, $db); }
-    catch (\Throwable $e) { $db->rollbackTransaction(); throw $e; }
-
-    try { updateAccounts($id, $db); }
-    catch (\Throwable $e) { $db->rollbackTransaction(); throw $e; }
-
-    $db->commitTransaction();
-}
-catch (\Bitrix\Main\DB\TransactionException $e)
-{
-    $db->rollbackTransaction();  // гарантированный глобальный rollback
-    throw $e;
-}
+$tracker = \Bitrix\Main\Application::getInstance()->getConnectionPool()
+    ->getConnection()->startTracker();
+// ... queries ...
+$queries = $tracker->getQueries();
+$tracker->stop();
 ```
 
-## DDL (в `install/index.php`, `updater.php`, командах миграций)
+Use only in development.
 
-```php
-use Bitrix\Main\ORM\Fields;
+## PostgreSQL
 
-$db->createTable('vendor_module_post', [
-    'ID'         => new Fields\IntegerField('ID',         ['primary' => true, 'autocomplete' => true]),
-    'TITLE'      => new Fields\StringField('TITLE',       ['size' => 255]),
-    'CREATED_AT' => new Fields\DatetimeField('CREATED_AT'),
-]);
+`PgsqlConnection` is supported (Enterprise for PostgreSQL license). Not all kernel/marketplace modules support PostgreSQL — verify before migration. See skill `bitrix-postgresql`.
 
-$db->createPrimaryIndex('vendor_module_post', ['ID']);
-$db->createIndex('ix_post_title', 'vendor_module_post', ['TITLE'], unique: false);
+## after_connect_d7.php
 
-$db->dropColumn('vendor_module_post', 'TITLE');
-$db->renameTable('old', 'new');
-$db->truncateTable('vendor_module_post');
-$db->dropTable('vendor_module_post');
-
-if (!$db->isTableExists('vendor_module_post')) { /* ... */ }
-$fields = $db->getTableFields('vendor_module_post');
-```
-
-Предпочтительно вызывать `getEntity()->createDbTable()` для классов ORM — они знают свою схему:
-
-```php
-\Vendor\Module\Data\PostTable::getEntity()->createDbTable();
-```
-
-## Key-value соединения
-
-```php
-/** @var \Bitrix\Main\Data\RedisConnection $redis */
-$redis = Application::getConnection('redis');
-$handle = $redis->getResource();   // нативный \Redis — используй его API
-$handle->set('k', 'v', 60);
-```
-
-Memcache/Memcached аналогично: `MemcacheConnection`/`MemcachedConnection` с полями `host`/`port` (или массив `servers` для кластера) и опцией `persistent`.
-
-## Антипаттерны
-
-- Конкатенация пользовательских значений в SQL без `forSql`/`SqlExpression`. 
-- `query($sql, $binds)` с ожиданием подготовленных выражений — этот `binds` не защищает от инъекций.
-- `add('my_table', $_POST)` — прилетят произвольные колонки (метод их отбросит) и строковые значения с управляющими байтами без дополнительной валидации.
-- Транзакция, охватывающая отправку HTTP/ожидание внешнего API → блокировка таблиц на секунды.
-- Кеш вокруг `query()` без инвалидации по тегам — собирает «устаревший суп».
-- Прямой доступ к `mysqli`/`\Redis` через `$db->getResource()` без необходимости — ломается на смене драйвера.
-
-## Чек-лист
-
-- [ ] Пользовательский ввод → только через `SqlExpression` (`?s`, `?i`, `?#`) или `SqlHelper::forSql/convertToDb`.
-- [ ] В `.settings.php` подключения имеют `options => Connection::DEFERRED`, секция `readonly`.
-- [ ] Сырые `query()` применяются только там, где ORM неудобен; в репозиториях — инкапсулированы.
-- [ ] Транзакции держатся короткими и обёрнуты в `try/finally` с `rollbackTransaction`.
-- [ ] UPSERT — через `prepareMerge*`, а не конкатенация `ON DUPLICATE KEY`.
-- [ ] Bulk-операции — `addMulti` / `prepareMergeMultiple`, а не циклы с `INSERT` по одной.
-- [ ] DDL в установке/обновлении — через `DataManager::getEntity()->createDbTable()` или `Connection::createTable`, а не сырой `CREATE TABLE`.
+Place in `/local/php_interface/after_connect_d7.php` for code that must run immediately after DB connection (timezone, session variables, compatibility hooks).

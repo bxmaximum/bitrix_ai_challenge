@@ -1,41 +1,41 @@
 ---
 name: bitrix-project-structure
-description: Покрывает структуру Bitrix-проекта — /local vs /bitrix, PSR-4 автозагрузка, .settings.php и .settings_extra.php, Loader::includeModule, расположение компонентов, шаблонов, модулей, маршрутов и php_interface, неймспейсы вида Vendor\Module. Применяется при вопросах «куда класть код», первичной настройке нового модуля или компонента, переезде кода из /bitrix в /local и настройке автозагрузки. Ключевые термины — /local, /bitrix, PSR-4, .settings.php, Loader, includeModule, autoload, vendor.module.
+description: Covers Bitrix project structure — /local vs /bitrix, PSR-4 autoloading, .settings.php and .settings_extra.php, Loader::includeModule, placement of components, templates, modules, routes and php_interface, namespaces like Vendor\Module. Applied for "where to put code" questions, initial setup of a new module or component, moving code from /bitrix to /local and configuring autoloading. Key terms — /local, /bitrix, PSR-4, .settings.php, Loader, includeModule, autoload, vendor.module.
 ---
 
-# Структура проекта и автозагрузка в Bitrix
+# Project Structure and Autoloading in Bitrix
 
-## Три корневых раздела
+## Three Root Sections
 
-- `/bitrix/` — **системные файлы**. Никогда не правь их напрямую: любой хотфикс будет потерян при обновлении.
-- `/local/` — **весь пользовательский код**. Если файла нет — создай его вручную. При одинаковом пути файл из `/local/` имеет приоритет над `/bitrix/`.
-- `/upload/` — загруженные пользователями и модулями файлы.
+- `/bitrix/` — **system files**. Never edit them directly: any hotfix will be lost during an update.
+- `/local/` — **all user code**. If a file doesn't exist — create it manually. With the same path, a file in `/local/` takes precedence over `/bitrix/`.
+- `/upload/` — files uploaded by users and modules.
 
-## Что класть в `/local/`
+## What to Put in `/local/`
 
 ```
 /local/
-├── modules/<vendor>.<module>/   # Пользовательские модули (PSR-4 автозагрузка)
-├── components/<vendor>/<name>/  # Компоненты (class.php, templates/.default/)
-├── templates/<id>/              # Шаблоны сайтов + /components/, /page_templates/
-├── routes/web.php               # Маршруты роутинга
-├── activities/                  # Действия бизнес-процессов
-├── gadgets/                     # Гаджеты рабочего стола
-├── blocks/                      # Блоки Сайтов24
-├── js/                          # Кастомные JS
+├── modules/<vendor>.<module>/   # Custom modules (PSR-4 autoloading)
+├── components/<vendor>/<name>/  # Components (class.php, templates/.default/)
+├── templates/<id>/              # Site templates + /components/, /page_templates/
+├── routes/web.php               # Routing routes
+├── activities/                  # Business process actions
+├── gadgets/                     # Desktop gadgets
+├── blocks/                      # Sites24 blocks
+├── js/                          # Custom JS
 ├── php_interface/
-│   ├── init.php                 # Загружается на каждом хите
-│   ├── dbconn.php               # С main 24.100 — можно держать здесь
-│   └── user_lang/               # Переводы пользовательского интерфейса
-├── .settings.php                # Конфигурация ядра (с main 24.100)
-└── .settings_extra.php          # Оверрайды (с main 24.100)
+│   ├── init.php                 # Loaded on every hit
+│   ├── dbconn.php               # From main 24.100 — can be kept here
+│   └── user_lang/               # User interface translations
+├── .settings.php                # Kernel configuration (from main 24.100)
+└── .settings_extra.php          # Overrides (from main 24.100)
 ```
 
-Папке `/local/php_interface/` выставь те же права, что и `/bitrix/php_interface/` — там могут быть чувствительные файлы.
+Set the same permissions for `/local/php_interface/` as for `/bitrix/php_interface/` — it may contain sensitive files.
 
-## Подключение модуля
+## Including a Module
 
-Перед обращением к классам любого модуля:
+Before accessing classes of any module:
 
 ```php
 if (!\Bitrix\Main\Loader::includeModule('vendor.module'))
@@ -44,15 +44,15 @@ if (!\Bitrix\Main\Loader::includeModule('vendor.module'))
 }
 ```
 
-Метод:
+The method:
 
-- Подключает `include.php` и `/lib/autoload.php` модуля.
-- Регистрирует неймспейс модуля для PSR-4-автозагрузки.
-- Возвращает `false`, если модуль не установлен или отсутствует — всегда проверяй результат.
+- Includes `include.php` and `/lib/autoload.php` of the module.
+- Registers the module namespace for PSR-4 autoloading.
+- Returns `false` if the module is not installed or missing — always check the result.
 
-## PSR-4 автозагрузка классов в `/lib/`
+## PSR-4 Autoloading of Classes in `/lib/`
 
-Правило простое: **имя папки = часть неймспейса, имя файла = имя класса** (оба в PascalCase).
+The rule is simple: **folder name = namespace part, file name = class name** (both in PascalCase).
 
 ```
 /local/modules/vendor.module/lib/
@@ -62,13 +62,13 @@ if (!\Bitrix\Main\Loader::includeModule('vendor.module'))
 └── Cli/Command/Feature/RebuildCommand.php      # \Vendor\Module\Cli\Command\Feature\RebuildCommand
 ```
 
-Неймспейс модуля формируется из идентификатора: `vendor.module` → `\Vendor\Module`. Если идентификатор состоит из одного слова (`mymodule`), то и неймспейс — `\Mymodule`, но такие модули считаются «собственными» (не партнёрскими).
+The module namespace is formed from the identifier: `vendor.module` → `\Vendor\Module`. If the identifier consists of one word (`mymodule`), then the namespace is `\Mymodule`, but such modules are considered "own" (not partner).
 
-Если структура PSR-4 соблюдена — **ничего регистрировать вручную не нужно**.
+If the PSR-4 structure is followed — **nothing needs to be registered manually**.
 
-## Ручная регистрация (когда нужна)
+## Manual Registration (When Needed)
 
-В редких случаях (смешанные папки, не-PSR-4 наследие) можно прописать в `/local/modules/vendor.module/include.php`:
+In rare cases (mixed folders, non-PSR-4 legacy), you can specify in `/local/modules/vendor.module/include.php`:
 
 ```php
 \Bitrix\Main\Loader::registerNamespace(
@@ -81,32 +81,53 @@ if (!\Bitrix\Main\Loader::includeModule('vendor.module'))
 ]);
 ```
 
-Предпочитай `registerNamespace` для папки с PSR-4 структурой. `registerAutoLoadClasses` — крайний случай.
+Prefer `registerNamespace` for a folder with PSR-4 structure. `registerAutoLoadClasses` is a last resort.
 
 ## Composer
 
-Composer-зависимости кладутся в `/local/vendor/` (`/local/composer.json`). Это нужно и для работы `bitrix/bitrix.php` (команд `make:*`). Не ставь пакеты в `/bitrix/vendor/` — они исчезнут при обновлении ядра.
+Composer dependencies are placed in `/local/vendor/` (`/local/composer.json`). Keep `composer.json` **outside** `DOCUMENT_ROOT` when possible.
 
-## Файлы конфигурации
+In `.settings.php`:
 
-- `/bitrix/.settings.php` или `/local/.settings.php` — основной конфиг ядра D7.
-- `/bitrix/.settings_extra.php` или `/local/.settings_extra.php` — оверрайды без API.
-- `/bitrix/php_interface/dbconn.php` или `/local/php_interface/dbconn.php` — константы для старого ядра и совместимости.
+```php
+'composer' => [
+    'value' => ['config_path' => '../composer.json'], // path relative to DOCUMENT_ROOT
+    'readonly' => true,
+],
+```
 
-В `.settings.php` модуля (`/local/modules/vendor.module/.settings.php`) прописываются секции `services`, `controllers`, `routing`, `console`. Его содержимое автоматически подмешивается в глобальный контейнер после `includeModule`.
+Required for `bitrix/bitrix.php` (`make:*` commands). Do not install packages in `/bitrix/vendor/` — they disappear on kernel update.
 
-## Приоритет файлов
+## Additional Files
 
-- Компоненты: `/local/components/<vendor>/<name>/` перекрывают `/bitrix/components/<vendor>/<name>/`.
-- Шаблоны компонентов в шаблоне сайта: `/local/templates/<id>/components/...` перекрывают всё остальное.
-- Системные файлы (например, `header.php`) ищутся сначала в `/local/`, затем в `/bitrix/`.
+- `/bitrix/routing_index.php` — entry point for new routing (configure web server to forward here).
+- `/local/php_interface/after_connect_d7.php` — runs after DB connection (migrations, session tweaks).
+- `/local/php_interface/virtual_file_system.php` — virtual filesystem overrides.
 
-## Когда нужно `php_interface/init.php`
+## JS Extensions
 
-Только для:
+Custom frontend code lives in `/local/js/<module>/<extension>/`. Load via `Extension::load('module.extension')`. See skill `bitrix-extensions`.
 
-- Регистрации **динамических** обработчиков событий (`registerEventHandler`), которые нельзя привязать к установке конкретного модуля.
-- Констант проекта, которые должны быть доступны до подключения модулей.
-- Совместимостных хуков.
+## Configuration Files
 
-Для всего остального — создавай модуль и используй его `install/index.php`, `include.php`, `.settings.php`.
+- `/bitrix/.settings.php` or `/local/.settings.php` — primary D7 kernel config.
+- `/bitrix/.settings_extra.php` or `/local/.settings_extra.php` — overrides without API.
+- `/bitrix/php_interface/dbconn.php` or `/local/php_interface/dbconn.php` — constants for old kernel and compatibility.
+
+In a module's `.settings.php` (`/local/modules/vendor.module/.settings.php`), the `services`, `controllers`, `routing`, and `console` sections are specified. Its content is automatically merged into the global container after `includeModule`.
+
+## File Priority
+
+- Components: `/local/components/<vendor>/<name>/` override `/bitrix/components/<vendor>/<name>/`.
+- Component templates in a site template: `/local/templates/<id>/components/...` override everything else.
+- System files (e.g., `header.php`) are searched first in `/local/`, then in `/bitrix/`.
+
+## When `php_interface/init.php` is Needed
+
+Only for:
+
+- Registering **dynamic** event handlers (`registerEventHandler`) that cannot be tied to the installation of a specific module.
+- Project constants that must be available before modules are included.
+- Compatibility hooks.
+
+For everything else — create a module and use its `install/index.php`, `include.php`, and `.settings.php`.

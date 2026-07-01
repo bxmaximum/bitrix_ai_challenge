@@ -1,34 +1,34 @@
 ---
 name: bitrix-request-response
-description: Покрывает HTTP-слой Bitrix — Application, Context, HttpRequest, HttpResponse и наследники (Json, Redirect, BFile, Html, AjaxJson), работа с куками и заголовками, snake_case↔camelCase Converter, отдача файлов, редиректы, статусы и заголовки ответа. Применяется при чтении входных параметров через Context вместо прямого $_GET/$_POST, построении endpoints, отдаче JSON и файлов, установке куки и редиректах. Ключевые термины — HttpRequest, HttpResponse, Json, Redirect, Context, Application, Cookie, headers.
+description: Covers Bitrix HTTP layer — Application, Context, HttpRequest, HttpResponse and descendants (Json, Redirect, BFile, Html, AjaxJson), working with cookies and headers, snake_case↔camelCase Converter, file delivery, redirects, statuses, and response headers. Applied when reading input parameters via Context instead of direct $_GET/$_POST, building endpoints, delivering JSON and files, setting cookies, and redirects. Key terms — HttpRequest, HttpResponse, Json, Redirect, Context, Application, Cookie, headers.
 ---
 
 # Application, Context, Request, Response
 
 ## Application
 
-Singleton на хит, конфигурирует ядро, даёт доступ к общим сервисам.
+A singleton per hit, configures the kernel, provides access to general services.
 
 ```php
 use Bitrix\Main\Application;
 
 $app = Application::getInstance();
 
-$app->getContext();           // текущий контекст
-$app->getManagedCache();      // управляемый кеш
-$app->getTaggedCache();       // теговый кеш
-$app->getSession();           // объект сессии (см. bitrix-sessions)
-$app->getConnection();        // основное соединение с БД
-$app->getConnection('log');   // соединение по имени из connections
-$app->getKernelSession();     // сессия ядра
-$app->addBackgroundJob(fn () => /* ... */);     // см. bitrix-background-jobs
+$app->getContext();           // current context
+$app->getManagedCache();      // managed cache
+$app->getTaggedCache();       // tagged cache
+$app->getSession();           // session object (see bitrix-sessions)
+$app->getConnection();        // primary DB connection
+$app->getConnection('log');   // connection by name from connections
+$app->getKernelSession();     // kernel session
+$app->addBackgroundJob(fn () => /* ... */);     // see bitrix-background-jobs
 ```
 
-Наследники: `HttpApplication` (HTTP-хит), `CliApplication` (CLI-хит — `bitrix.php`).
+Descendants: `HttpApplication` (HTTP hit), `CliApplication` (CLI hit — `bitrix.php`).
 
 ## Context
 
-«Конверт» одного запроса: `Request`, `Response`, `Server`, язык, `Culture`, сайт.
+An "envelope" for a single request: `Request`, `Response`, `Server`, language, `Culture`, site.
 
 ```php
 use Bitrix\Main\Context;
@@ -37,41 +37,41 @@ $ctx = Context::getCurrent();
 
 $ctx->getRequest();    // HttpRequest
 $ctx->getResponse();   // HttpResponse
-$ctx->getServer();     // Server (обёртка над $_SERVER)
-$ctx->getCulture();    // региональные форматы
+$ctx->getServer();     // Server (wrapper over $_SERVER)
+$ctx->getCulture();    // regional formats
 $ctx->getLanguage();   // 'ru'
 $ctx->getSite();       // 's1'
 $ctx->getEnvironment();
 ```
 
-`Context::getCurrent()` — более короткий синоним для `Application::getInstance()->getContext()`.
+`Context::getCurrent()` is a shorter alias for `Application::getInstance()->getContext()`.
 
 ## HttpRequest
 
-Наследуется от `ParameterDictionary`: доступ `$request['id']` отфильтрованный, `$request->get('id')` — тоже.
+Inherits from `ParameterDictionary`: `$request['id']` is filtered, `$request->get('id')` is too.
 
-### Параметры
+### Parameters
 
 ```php
 $request = Context::getCurrent()->getRequest();
 
 $id    = (int)$request->get('id');
-$title = (string)$request->getQuery('title');   // только GET
-$body  = (string)$request->getPost('body');     // только POST
-$file  = $request->getFile('upload');           // массив как в $_FILES
-$token = $request->getHeader('X-Auth-Token');   // заголовок
+$title = (string)$request->getQuery('title');   // GET only
+$body  = (string)$request->getPost('body');     // POST only
+$file  = $request->getFile('upload');           // array as in $_FILES
+$token = $request->getHeader('X-Auth-Token');   // header
 $cookie = $request->getCookie('BITRIX_SM_GUEST_ID');
 
-$all   = $request->toArray();      // все GET+POST
+$all   = $request->toArray();      // all GET+POST
 $query = $request->getQueryList(); // ParameterDictionary GET
 $post  = $request->getPostList();
 $files = $request->getFileList();
 ```
 
-- `$request['x']` возвращает значение, прошедшее системные фильтры (proactive). Это **не** защищает от SQL-инъекций/XSS — экранируй сам.
-- Для типизированного ввода предпочтительнее Request-DTO + `#[ValidationParameter]` (см. `bitrix-validation`).
+- `$request['x']` returns a value processed by system filters (proactive). This **does not** protect against SQL injections/XSS — escape yourself.
+- For typed input, Request-DTO + `#[ValidationParameter]` is preferred (see `bitrix-validation`).
 
-### О самом запросе
+### About the Request
 
 ```php
 $request->getRequestMethod();       // GET|POST|PUT|DELETE
@@ -79,7 +79,7 @@ $request->isGet();
 $request->isPost();
 $request->isPut();
 $request->isDelete();
-$request->isAjaxRequest();          // заголовок X-Requested-With: XMLHttpRequest
+$request->isAjaxRequest();          // X-Requested-With: XMLHttpRequest header
 $request->isHttps();
 $request->isAdminSection();         // /bitrix/admin/*
 $request->getRequestUri();          // '/news/?id=1'
@@ -90,7 +90,7 @@ $request->getUserAgent();
 $request->getAcceptedLanguages();
 ```
 
-### Сервер
+### Server
 
 ```php
 $server = Context::getCurrent()->getServer();
@@ -117,18 +117,18 @@ $response->setContent(\Bitrix\Main\Web\Json::encode(['ok' => true]));
 return $response;
 ```
 
-Методы:
+Methods:
 
 - `setStatus(string)`, `getStatus()`.
 - `addHeader(name, value)`, `setHeaders(HttpHeaders)`, `getHeaders()`.
 - `addCookie(Cookie $c, bool $replace = true, bool $checkExpires = true)`, `getCookies()`.
 - `setContent($body)`, `getContent()`.
-- `flush($text = '')` — отправить заголовки и текущий буфер.
-- `send($body = null)` — финализация.
+- `flush($text = '')` — send headers and current buffer.
+- `send($body = null)` — finalization.
 
-## Готовые Response-классы
+## Built-in Response Classes
 
-Все лежат в `Bitrix\Main\Engine\Response\*`. Возвращать из действия контроллера или маршрута.
+All live in `Bitrix\Main\Engine\Response\*`. Return from controller action or route.
 
 ### JSON
 
@@ -146,9 +146,9 @@ return AjaxJson::createError(new \Bitrix\Main\Error('Forbidden', 'ACCESS_DENIED'
 // {"status":"error","errors":[...]}
 ```
 
-Контроллер, возвращающий массив, автоматически оборачивается в `AjaxJson` — вручную использовать нужно в замыканиях маршрутов или нестандартных эндпоинтах.
+A controller returning an array is automatically wrapped in `AjaxJson` — manual use is needed in route closures or non-standard endpoints.
 
-### Редирект
+### Redirect
 
 ```php
 use Bitrix\Main\Engine\Response\Redirect;
@@ -160,21 +160,21 @@ $redirect->setStatus('301 Moved Permanently');
 return $redirect;
 ```
 
-`Redirect` проверяет URL через `CHTTP` и блокирует явные XSS-редиректы.
+`Redirect` checks the URL via `CHTTP` and blocks obvious XSS redirects.
 
-### Компонент
+### Component
 
 ```php
 use Bitrix\Main\Engine\Response\Component;
 
 return new Component('vendor:post.list', '.default', ['SECTION_ID' => 12]);
-// Ответ с html компонента + js/css assets — понимает BX.ajax.runAction
+// Response with component HTML + js/css assets — understood by BX.ajax.runAction
 ```
 
-### Файлы
+### Files
 
 ```php
-use Bitrix\Main\Engine\Response\BFile;          // из таблицы b_file
+use Bitrix\Main\Engine\Response\BFile;          // from b_file table
 return BFile::createByFileId($fileId);
 
 use Bitrix\Main\Engine\Response\ResizedImage;
@@ -186,10 +186,10 @@ use Bitrix\Main\Engine\Response\Zip\ArchiveEntry;
 $archive = new Archive('report.zip');
 $archive->addEntry(ArchiveEntry::createFromFileId($fileId));
 return $archive;
-// Для nginx с mod_zip — отдача без нагрузки на PHP
+// For nginx with mod_zip — delivery without PHP overhead
 ```
 
-### HTML-страница
+### HTML Page
 
 ```php
 use Bitrix\Main\Engine\Response\Html;
@@ -198,62 +198,51 @@ return new Html('<h1>Hi</h1>');
 
 ## ParameterDictionary
 
-И `HttpRequest`, и `getQueryList/getPostList` — наследники `ParameterDictionary`:
+`HttpRequest::getQueryList()`, `getPostList()`, `getFileList()` return this object.
 
 ```php
-$params = new \Bitrix\Main\Type\ParameterDictionary(['foo' => 'bar']);
+$params = $request->getPostList();
 
-$params->get('foo');            // 'bar'
-$params['foo'];                 // 'bar'
-$params->set('baz', 42);
-$params->setValues(['a' => 1]); // массовое
-$params->delete('foo');
-$params->toArray();
-$params->offsetExists('foo');
+$params->get('id');             // value
+$params->getRaw('id');          // value before filters
+$params->getValues();           // array
+$params->isEmpty();             // bool
+$params->offsetExists('id');    // ArrayAccess
 ```
 
-## Converter — snake↔camel для API
+## Checklist
+
+- [ ] `Context` is used instead of direct `$_GET`/`$_POST`/`$_SERVER`.
+- [ ] Response uses typed classes (`Json`, `Redirect`, `BFile`).
+- [ ] Cookies are set via `Cookie` object with `HttpOnly` and `Secure`.
+- [ ] Headers are set via `HttpResponse::addHeader`.
+- [ ] Input data is treated as untrusted (filtered by dictionary but needs validation).
+- [ ] For large files, `BFile` response or `Archive` (mod_zip) is used.
+
+## Encrypted Cookies
+
+`Bitrix\Main\Web\CryptoCookie` stores values encrypted on the client. Requires `crypto` key in `.settings.php`:
 
 ```php
-use Bitrix\Main\Engine\Response\Converter;
-
-$toCamel = new Converter(Converter::OUTPUT_JSON_FORMAT);
-// эквивалентно TO_CAMEL | KEYS | RECURSIVE
-
-$data = $toCamel->process([
-    'CATEGORIES' => [['ID' => 1, 'NAME' => 'Foods']],
-]);
-// ['categories' => [['id' => 1, 'name' => 'Foods']]]
-
-$toSnake = new Converter(
-    Converter::TO_SNAKE_DIGIT | Converter::KEYS | Converter::RECURSIVE
-);
-$normalized = $toSnake->process(['elementOne' => 1]); // ['element_one' => 1]
+'crypto' => [
+    'value' => ['crypto_key' => '...'],  // generate a strong random key; keep outside git
+    'readonly' => true,
+],
 ```
 
-Используй при отдаче API внешним потребителям (camelCase) — внутри держать БД-стиль UPPER_SNAKE.
+```php
+use Bitrix\Main\Web\Cookie;
+use Bitrix\Main\Web\CryptoCookie;
+use Bitrix\Main\Context;
 
-## Доступ к `$_SESSION`, `$_COOKIE`, `$_GET` — только через API
+$cookie = new CryptoCookie('vendor_token', $token, time() + 86400);
+$cookie->setHttpOnly(true);
+$cookie->setSecure(true);
+$cookie->setSameSite('Lax');
 
-- `$_GET`/`$_POST`/`$_COOKIE` — через `$request->getQuery/getPost/getCookie`.
-- `$_SESSION` — через `Application::getInstance()->getSession()` (см. `bitrix-sessions`).
-- `header()`, `setcookie()` — через `HttpResponse::addHeader`/`addCookie`.
+Context::getCurrent()->getResponse()->addCookie($cookie);
+```
 
-Прямая работа с суперглобалами ломает композитный кеш и тесты.
+Reading: `$request->getCookie('vendor_token')` — kernel decrypts automatically when `crypto_key` is configured.
 
-## Антипаттерны
-
-- `$_GET['id']` в контроллере/компоненте вместо `$request->getQuery('id')`.
-- `die(json_encode(...))` из action — используй `Json`/`AjaxJson` или просто `return ['...']`.
-- `header('Location: /auth')` + `exit` — используй `Redirect` (он проверяет URL).
-- Строковые редиректы на URL из `$_GET` без валидации — открытый редирект.
-- `setcookie(...)` вместо `addCookie(new Cookie(...))` — не проставятся `HttpOnly`/`Secure`.
-
-## Чек-лист
-
-- [ ] Доступ к входным параметрам — только через `HttpRequest`.
-- [ ] Типизация и проверка полей — через Request-DTO + валидацию (см. `bitrix-validation`).
-- [ ] Ответы возвращают типизированные `Response`-классы, не `echo`/`die`.
-- [ ] Редиректы — через `Response\Redirect`, статус задан явно (301 vs 302).
-- [ ] Файлы отдаются через `BFile`/`ResizedImage`/`Zip\Archive`, а не `readfile`.
-- [ ] `Converter::OUTPUT_JSON_FORMAT` применяется к данным внешнего API (camelCase).
+For regular (non-encrypted) cookies use `Bitrix\Main\Web\Cookie` with the same security flags. CSRF and cookie policy details: skill `bitrix-security`. Kernel reference: `bitrix/modules/main/lib/web/cookie.php`, `cryptocookie.php` (if present in the project).

@@ -1,19 +1,19 @@
 ---
 name: bitrix-result-and-errors
-description: Покрывает унифицированный результат операций Bitrix — Bitrix\Main\Result, Error, ErrorCollection, типизированные наследники (AddResult, UpdateResult, DeleteResult, EventResult), разница между Result и исключениями, возврат ошибок из контроллеров через addError и объединение ошибок сервисов. Применяется при проектировании API сервисов и use-case-ов, возврате ошибок из методов модуля и контроллеров без бросания исключений. Ключевые термины — Result, Error, ErrorCollection, isSuccess, getErrors, AddResult, UpdateResult, addError.
+description: Covers Bitrix unified operation results — Bitrix\Main\Result, Error, ErrorCollection, typed descendants (AddResult, UpdateResult, DeleteResult, EventResult), difference between Result and exceptions, returning errors from controllers via addError and combining service errors. Applied when designing service APIs and use cases, returning errors from module methods and controllers without throwing exceptions. Key terms — Result, Error, ErrorCollection, isSuccess, getErrors, AddResult, UpdateResult, addError.
 ---
 
-# Result и ошибки в Bitrix
+# Result and Errors in Bitrix
 
-## Философия
+## Philosophy
 
-- **Пользовательские ошибки → `Result` + `Error`**. Валидация, бизнес-правила, «сущность не найдена», «недостаточно прав».
-- **Программные ошибки → исключения**. Сбой соединения, отсутствие обязательного модуля, битая конфигурация.
-- Один метод — один чёткий контракт: либо всегда возвращает `Result` (и не кидает «нормальные» исключения), либо гарантированно возвращает значение и кидает `\Throwable` в исключительных случаях.
+- **User Errors → `Result` + `Error`**. Validation, business rules, "entity not found," "insufficient permissions."
+- **Program Errors → Exceptions**. Connection failure, missing mandatory module, broken configuration.
+- One method — one clear contract: either it always returns `Result` (and doesn't throw "normal" exceptions), or it guaranteed returns a value and throws `\Throwable` in exceptional cases.
 
 ## `Bitrix\Main\Result`
 
-Базовый объект:
+Base object:
 
 ```php
 $result = new \Bitrix\Main\Result();
@@ -50,7 +50,7 @@ new \Bitrix\Main\Error(
 );
 ```
 
-Код ошибки должен быть **стабильным и машинно-читаемым** — клиенты должны ориентироваться на него, а не на текст.
+The error code should be **stable and machine-readable** — clients should rely on it, not the text.
 
 ## `ErrorCollection`
 
@@ -64,11 +64,11 @@ foreach ($errors as $error) { /* ... */ }
 $errors->getErrorByCode('CODE_A');
 ```
 
-`Controller` уже содержит `protected ErrorCollection $errorCollection` — им пользуются `$this->addError(...)` и `$this->addErrors(...)`.
+`Controller` already contains `protected ErrorCollection $errorCollection` — it is used by `$this->addError(...)` and `$this->addErrors(...)`.
 
-## Типизированный `Result` для сервиса
+## Typed `Result` for Service
 
-Вместо `setData(['post' => $post])` проще наследоваться и предоставить нормальные геттеры:
+Instead of `setData(['post' => $post])`, it's easier to inherit and provide normal getters:
 
 ```php
 <?php declare(strict_types=1);
@@ -96,7 +96,7 @@ final class CreatePostResult extends Result
 }
 ```
 
-Использование:
+Usage:
 
 ```php
 public function create(CreatePostRequest $request): CreatePostResult
@@ -118,25 +118,25 @@ public function create(CreatePostRequest $request): CreatePostResult
 }
 ```
 
-## Специализированные Result-ы ORM
+## Specialized ORM Results
 
 - `AddResult` — `getId()`.
 - `UpdateResult` — `getAffectedRowsCount()`, `getPrimary()`.
 - `DeleteResult` — `getAffectedRowsCount()`.
 
-Они наследуются от `Result` и работают с тем же API. Пример:
+They inherit from `Result` and work with the same API. Example:
 
 ```php
 $add = PostTable::add(['TITLE' => 'Hi', 'AUTHOR_ID' => 1]);
 if (!$add->isSuccess())
 {
     $this->logger->warning('Add post failed', ['errors' => $add->getErrorMessages()]);
-    return $add; // проксируем наверх
+    return $add; // proxy upwards
 }
 $id = $add->getId();
 ```
 
-## Возврат ошибок в контроллере
+## Returning Errors in Controller
 
 ```php
 public function createAction(#[ValidationParameter] CreatePostRequest $request): array
@@ -153,7 +153,7 @@ public function createAction(#[ValidationParameter] CreatePostRequest $request):
 }
 ```
 
-Фронту уйдёт структура:
+The front-end will receive the following structure:
 
 ```json
 {
@@ -164,19 +164,19 @@ public function createAction(#[ValidationParameter] CreatePostRequest $request):
 }
 ```
 
-## Соглашения по кодам
+## Code Conventions
 
-- Префикс модуля + сущность + причина: `BLOG_POST_NOT_FOUND`, `BLOG_POST_TITLE_EMPTY`.
-- Не используй `"1"`, `"ERROR"`, `""` — это не даёт клиенту реагировать.
-- Переводимые тексты — через `Loc::getMessage('BLOG_ERROR_POST_TITLE_EMPTY')`, код — константой.
+- Module prefix + entity + reason: `BLOG_POST_NOT_FOUND`, `BLOG_POST_TITLE_EMPTY`.
+- Do not use `"1"`, `"ERROR"`, `""` — it doesn't allow the client to react.
+- Translated texts — via `Loc::getMessage('BLOG_ERROR_POST_TITLE_EMPTY')`, code — via constant.
 
-## Когда всё же исключение?
+## When to use Exceptions?
 
-- Недопустимое состояние системы: «модуль не установлен», «база не отвечает», «неправильно сконфигурирован сервис».
-- Нарушение контракта разработчика: `InvalidArgumentException`, `LogicException`, `TypeError`.
-- Внутри доменных операций, где «ошибка = баг». Например, `Money::divide()` с нулём.
+- Invalid system state: "module not installed," "database not responding," "service misconfigured."
+- Developer contract violation: `InvalidArgumentException`, `LogicException`, `TypeError`.
+- Inside domain operations where "error = bug." For example, `Money::divide()` with zero.
 
-Исключения ловятся на границе модуля/контроллера и превращаются в `Result` + лог:
+Exceptions are caught at the module/controller boundary and turned into `Result` + log:
 
 ```php
 try
@@ -192,18 +192,11 @@ catch (\Bitrix\Main\SystemException $e)
 }
 ```
 
-## Антипаттерны
+## Antipatterns
 
-- Возврат `bool`/`null`/`-1` из сервиса вместо `Result`.
-- Выбрасывание `\Exception('Post not found')` для штатной ситуации — это не исключение.
-- Проглатывание `catch (\Throwable $e) {}` без логирования.
-- Ошибка в виде массива `['error' => 'msg']` — унифицируй на `Result`.
-- `Error` без `code` — клиент не сможет обработать.
+- Returning `bool`/`null`/`-1` from a service instead of `Result`.
+- Throwing `\Exception('Post not found')` for a routine situation — that's not an exception.
+- Swallowing `catch (\Throwable $e) {}` without logging.
+- Error in the form of an array `['error' => 'msg']` — unify using `Result`.
 
-## Чек-лист
-
-- [ ] Все публичные методы сервисов возвращают `Result` (или его наследника), а не примитивы.
-- [ ] У каждой ошибки есть осмысленный `code` и, при необходимости, `customData`.
-- [ ] Контроллер пробрасывает ошибки из `Result` в `$this->addErrors(...)`.
-- [ ] Исключения системного уровня ловятся на границе и логируются.
-- [ ] Тексты ошибок локализованы через `Loc::getMessage`.
+Controller JSON error format: `{"status":"error","errors":[{"message":"...","code":"..."}]}`. See skill `bitrix-controllers`.

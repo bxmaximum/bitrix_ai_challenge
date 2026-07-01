@@ -1,139 +1,139 @@
 ---
 name: bitrix-iblocks
-description: Покрывает модуль iblock — типы инфоблоков, инфоблоки, разделы, элементы, пользовательские свойства (включая файловые и Highload), ORM через IblockTable::compileEntity и ElementTable/SectionTable, классические API CIBlockElement/CIBlockSection/CIBlockProperty, SEO-шаблоны (IPROPERTY_TEMPLATES), права доступа и группы свойств. Применяется при любых задачах по каталогу, новостям, контент-инфоблокам, импорту/экспорту элементов и построении выборок по значениям свойств. Ключевые термины — iblock, IblockTable, CIBlockElement, property, section, SEO template, compileEntity, HL-блок.
+description: Covers iblock module — iblock types, iblocks, sections, elements, user properties (including file and Highload), ORM via IblockTable::compileEntity and ElementTable/SectionTable, classic CIBlockElement/CIBlockSection/CIBlockProperty APIs, SEO templates (IPROPERTY_TEMPLATES), permissions and property groups. Applied for any catalog, news, content-iblock tasks, element import/export and building selections by property values. Key terms — iblock, IblockTable, CIBlockElement, property, section, SEO template, compileEntity, HL-block.
 ---
 
-# Инфоблоки (`iblock`)
+# Information Blocks (`iblock`)
 
-Модуль `iblock` — основной инструмент Bitrix для структурированного динамического контента: каталоги, новости, справочники. В новых проектах работаем через **ORM** (типизировано, автодополнение, меньше багов). **Классическое API** нужно там, где ORM не покрывает весь граф таблиц.
+The `iblock` module is the primary Bitrix tool for structured dynamic content: catalogs, news, directories. In new projects, we work via **ORM** (typed, autocompletion, fewer bugs). The **classic API** is needed where ORM doesn't cover the entire table graph.
 
 ```php
 \Bitrix\Main\Loader::includeModule('iblock');
 ```
 
-## Иерархия
+## Hierarchy
 
-- **Тип инфоблоков** (`b_iblock_type`) — семейство инфоблоков с общей структурой: «новости», «каталог».
-- **Инфоблок** (`b_iblock`) — таблица элементов определённого типа, привязана к сайтам.
-- **Раздел** (`b_iblock_section`) — группа элементов, образует дерево.
-- **Элемент** (`b_iblock_element`) — единица контента (новость, товар).
-- **Свойство** (`b_iblock_property`) — дополнительная характеристика элемента.
+- **Iblock Type** (`b_iblock_type`) — a family of iblocks with a shared structure: "news", "catalog".
+- **Iblock** (`b_iblock`) — a table of elements of a certain type, linked to sites.
+- **Section** (`b_iblock_section`) — a group of elements, forming a tree.
+- **Element** (`b_iblock_element`) — a unit of content (news, product).
+- **Property** (`b_iblock_property`) — an additional characteristic of an element.
 
-## Ключевые идентификаторы
+## Key Identifiers
 
-- `CODE` — символьный код (latin+digits+`-`), используется в URL и в коде.
-- `API_CODE` — 1–50 символов, начинается с буквы, **CamelCase рекомендуется**. Только при его наличии работает объектная ORM. Задаётся в настройках инфоблока.
-- `XML_ID` — внешний идентификатор (для обменов, Highload-справочников).
+- `CODE` — symbolic code (latin+digits+`-`), used in URLs and code.
+- `API_CODE` — 1–50 characters, starts with a letter, **CamelCase recommended**. Object-oriented ORM only works if it's present. Set in iblock settings.
+- `XML_ID` — external identifier (for exchanges, Highload directories).
 
-## Где проходит граница ORM / классическое API
+## Where ORM / Classic API Boundary Lies
 
-| Задача | API |
+| Task | API |
 | --- | --- |
-| Создать тип инфоблока | `CIBlockType::Add` (ORM не добавит переводы названий) |
-| Создать инфоблок | `CIBlock::Add` (ORM не привязывает к сайту, правам, SEO) |
-| Добавить/изменить свойство | `CIBlockProperty::Add/Update/Delete` |
-| Простые права на инфоблок | `CIBlock::SetPermission` / поле `GROUP_ID` в `Add` |
-| Расширенные права | `CIBlockRights` / `CIBlockSectionRights` / `CIBlockElementRights` |
-| Ресайз картинок | `CFile::ResizeImage` |
-| Полнотекстовый поиск | `CIBlockElement::UpdateSearch($id)` |
-| Ежедневное чтение/запись элементов и разделов | ORM |
+| Create iblock type | `CIBlockType::Add` (ORM won't add name translations) |
+| Create iblock | `CIBlock::Add` (ORM won't link to site, permissions, SEO) |
+| Add/change property | `CIBlockProperty::Add/Update/Delete` |
+| Basic iblock permissions | `CIBlock::SetPermission` / `GROUP_ID` field in `Add` |
+| Advanced permissions | `CIBlockRights` / `CIBlockSectionRights` / `CIBlockElementRights` |
+| Image resizing | `CFile::ResizeImage` |
+| Full-text search | `CIBlockElement::UpdateSearch($id)` |
+| Daily element/section CRUD | ORM |
 
-## Компиляция классов ORM
+## Compiling ORM Classes
 
-ORM генерирует классы «на лету» по `API_CODE` инфоблока (`News` в примерах ниже):
+ORM generates classes "on the fly" by iblock `API_CODE` (`News` in examples below):
 
 ```php
 \Bitrix\Iblock\IblockTable::compileEntity('News');
-// Класс элементов: \Bitrix\Iblock\Elements\ElementNewsTable
-// Класс разделов: \Bitrix\Iblock\Model\Section::compileEntityByIblock('News')
+// Elements class: \Bitrix\Iblock\Elements\ElementNewsTable
+// Sections class: \Bitrix\Iblock\Model\Section::compileEntityByIblock('News')
 
 $elementClass = \Bitrix\Iblock\Elements\ElementNewsTable::class;
 $sectionClass = \Bitrix\Iblock\Model\Section::compileEntityByIblock('News');
 ```
 
-Не используй `\Bitrix\Iblock\ElementTable` и `\Bitrix\Iblock\SectionTable` — они работают **только** с базовыми полями и **не знают о свойствах/UF**.
+Do not use `\Bitrix\Iblock\ElementTable` and `\Bitrix\Iblock\SectionTable` — they **only** work with basic fields and **do not know about properties/UF**.
 
-IDE-аннотации: `php bitrix/bitrix.php orm:annotate`.
+IDE annotations: `php bitrix/bitrix.php orm:annotate`.
 
-## Создание инфоблока программно
+## Creating an Iblock Programmatically
 
 ```php
 $iblock = new \CIBlock();
 $iblockId = $iblock->Add([
     'IBLOCK_TYPE_ID' => 'mynews',
-    'NAME'           => 'Новости',
+    'NAME'           => 'News',
     'CODE'           => 'mycompany_news',
-    'API_CODE'       => 'News',           // обязательно для ORM
+    'API_CODE'       => 'News',           // required for ORM
     'ACTIVE'         => 'Y',
-    'LID'            => ['s1'],           // привязка к сайту
+    'LID'            => ['s1'],           // link to site
     'GROUP_ID'       => [
         2 => \CIBlockRights::PUBLIC_READ,
         8 => \CIBlockRights::EDIT_ACCESS,
     ],
-    'VERSION'        => 2,                // версия хранения свойств (обычно 2)
+    'VERSION'        => 2,                // property storage version (usually 2)
 ]);
 if (!$iblockId) { throw new \RuntimeException($iblock->getLastError()->getMessage()); }
 ```
 
-### Версии хранения свойств
+### Property Storage Versions
 
-- **Версия 1** — отдельная строка в общей `b_iblock_element_property`. Медленная выборка, выигрывает при сотнях свойств.
-- **Версия 2** (по умолчанию для новых) — значения элемента в одной строке таблицы `b_iblock_element_prop_s{IBLOCK_ID}`. Быстрая выборка, при ≤50 свойств. Для v2 `PropertyTable::add/update/delete` **не работает** — только классическое API.
+- **Version 1** — separate row in the shared `b_iblock_element_property` table. Slow selection, wins with hundreds of properties.
+- **Version 2** (default for new) — element values in a single row of `b_iblock_element_prop_s{IBLOCK_ID}` table. Fast selection, with ≤50 properties. For v2, `PropertyTable::add/update/delete` **does not work** — use classic API only.
 
-## Свойства
+## Properties
 
-### Базовые типы
+### Basic Types
 
 ```php
 (new \CIBlockProperty)->Add([
     'IBLOCK_ID'     => $iblockId,
-    'NAME'          => 'Автор',
-    'CODE'          => 'AUTHOR',      // обязательно! без CODE ORM не увидит
-    'PROPERTY_TYPE' => 'S',            // S-строка, N-число, L-список, F-файл, E-элемент, G-раздел
+    'NAME'          => 'Author',
+    'CODE'          => 'AUTHOR',      // required! ORM won't see it without CODE
+    'PROPERTY_TYPE' => 'S',            // S-string, N-number, L-list, F-file, E-element, G-section
     'MULTIPLE'      => 'N',
 ]);
 ```
 
-### Список (`L`)
+### List (`L`)
 
 ```php
 $propId = (new \CIBlockProperty)->Add([
-    'IBLOCK_ID' => $iblockId, 'NAME' => 'Источник', 'CODE' => 'SOURCE',
+    'IBLOCK_ID' => $iblockId, 'NAME' => 'Source', 'CODE' => 'SOURCE',
     'PROPERTY_TYPE' => 'L', 'MULTIPLE' => 'N',
 ]);
 
 $enum = new \CIBlockPropertyEnum();
-$enum->Add(['PROPERTY_ID' => $propId, 'VALUE' => 'ТАСС', 'XML_ID' => 'tass', 'SORT' => 10]);
+$enum->Add(['PROPERTY_ID' => $propId, 'VALUE' => 'Reuters', 'XML_ID' => 'reuters', 'SORT' => 10]);
 ```
 
-### Пользовательские типы (`USER_TYPE`)
+### User Types (`USER_TYPE`)
 
-- `USER_TYPE = 'HTML'`, `PROPERTY_TYPE = 'S'` — редактор HTML.
-- `USER_TYPE = 'directory'`, `PROPERTY_TYPE = 'S'` + `USER_TYPE_SETTINGS = ['TABLE_NAME' => 'b_<hl_table>']` — значение из Highload-блока, хранится `UF_XML_ID`.
-- `USER_TYPE = 'DateTime'`, `PROPERTY_TYPE = 'S'` — дата-время.
+- `USER_TYPE = 'HTML'`, `PROPERTY_TYPE = 'S'` — HTML editor.
+- `USER_TYPE = 'directory'`, `PROPERTY_TYPE = 'S'` + `USER_TYPE_SETTINGS = ['TABLE_NAME' => 'b_<hl_table>']` — value from Highload block, `UF_XML_ID` is stored.
+- `USER_TYPE = 'DateTime'`, `PROPERTY_TYPE = 'S'` — date-time.
 
-## Разделы через ORM
+## Sections via ORM
 
 ```php
 $sectionClass = \Bitrix\Iblock\Model\Section::compileEntityByIblock('News');
 
 $parent = $sectionClass::createObject()
     ->setIblockId($iblockId)
-    ->setName('Мероприятия')
+    ->setName('Events')
     ->setCode('events')
-    ->set('UF_MANAGER', 'Иван Иванов') // UF-поля — через set('UF_*', ...)
+    ->set('UF_MANAGER', 'John Doe') // UF fields via set('UF_*', ...)
     ->setActive(true)
     ->save();
 
 $child = $sectionClass::createObject()
     ->setIblockId($iblockId)
-    ->setName('Выставки')
+    ->setName('Exhibitions')
     ->setCode('exhibitions')
     ->setIblockSectionId($parent->getObject()->getId())
     ->save();
 ```
 
-Чтение с родителем:
+Reading with parent:
 
 ```php
 $section = $sectionClass::query()
@@ -144,44 +144,44 @@ $section = $sectionClass::query()
 $section->getParentSection()?->getName();
 ```
 
-Удаление:
+Deletion:
 
-- **`CIBlockSection::Delete($id)`** — рекурсивно удаляет подразделы и элементы, чистит кеш и поиск.
-- `$section->delete()` — удаляет только сам раздел (дети осиротеют). Используй с пониманием.
+- **`CIBlockSection::Delete($id)`** — recursively deletes sub-sections and elements, clears cache and search index.
+- `$section->delete()` — only deletes the section itself (children will become orphaned). Use with caution.
 
-## Элементы через ORM
+## Elements via ORM
 
-### Создание
+### Creation
 
 ```php
 $elementClass = \Bitrix\Iblock\Elements\ElementNewsTable::class;
 
 $element = $elementClass::createObject()
-    ->setName('Обновление безопасности')
+    ->setName('Security Update')
     ->setCode('security-update')
     ->setActive(true)
     ->setIblockSectionId($parentSectionId)
-    ->set('AUTHOR', 'Ирина Петрова')  // строка
-    ->set('SOURCE', $enumId);          // список — ID значения из CIBlockPropertyEnum
+    ->set('AUTHOR', 'Jane Smith')  // string
+    ->set('SOURCE', $enumId);       // list — ID of value from CIBlockPropertyEnum
 
 $result = $element->save();
 if (!$result->isSuccess()) { /* errors */ }
 ```
 
-### Множественные свойства
+### Multiple Properties
 
 ```php
 $element
-    ->addTo('TAGS', 'безопасность')
+    ->addTo('TAGS', 'security')
     ->addTo('TAGS', '2026');
 
-$element->removeAll('TAGS');      // очистить всё
-$element->removeAllBy('TAGS', 'безопасность');
+$element->removeAll('TAGS');      // clear all
+$element->removeAllBy('TAGS', 'security');
 ```
 
-### Файловые свойства
+### File Properties
 
-ORM требует `PropertyValue` — в нём `ID` файла + описание.
+ORM requires `PropertyValue` — it contains file `ID` + description.
 
 ```php
 use Bitrix\Iblock\ORM\PropertyValue;
@@ -194,117 +194,70 @@ $fileId = \CFile::SaveFile(
 \CFile::ResizeImage($fileId, ['width' => 300, 'height' => 300], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 
 $element
-    ->set('PHOTO',   new PropertyValue($fileId, 'Главное фото'))
-    ->addTo('GALLERY', new PropertyValue($otherId, 'Второй снимок'));
+    ->set('PHOTO',   new PropertyValue($fileId, 'Main Photo'))
+    ->addTo('GALLERY', new PropertyValue($otherId, 'Second Shot'));
 ```
 
-### Справочник (Highload)
+### Element Relations (`E`, `G`)
 
 ```php
-$element->set('CATEGORY', 'cybersec'); // UF_XML_ID из Highload-блока, не ID
+$element->set('RELATED_ARTICLE', $otherElementId);
+$element->set('MANUFACTURER', $sectionId);
 ```
 
-## Чтение элементов
+## Selections and Filters
 
 ```php
 $elements = $elementClass::query()
-    ->setSelect([
-        'ID', 'NAME', 'DATE_ACTIVE_FROM',
-        'AUTHOR',               // строка
-        'SOURCE.VALUE',         // значение списка — через .VALUE
-        'SOURCE.ITEM.XML_ID',   // XML_ID варианта списка
-        'PHOTO.VALUE', 'PHOTO.DESCRIPTION',
-        'SECTION_' => 'IBLOCK_SECTION',
-    ])
+    ->setSelect(['ID', 'NAME', 'PREVIEW_TEXT', 'AUTHOR', 'SOURCE'])
     ->where('ACTIVE', 'Y')
-    ->where('SOURCE.VALUE', $enumId)  // фильтр по значению списка — через .VALUE
-    ->setOrder(['DATE_ACTIVE_FROM' => 'DESC'])
+    ->where('IBLOCK_SECTION_ID', $sectionId)
+    ->where('AUTHOR.VALUE', 'Jane Smith')           // filter by property value
+    ->whereIn('SOURCE.VALUE', [$enumId1, $enumId2])
+    ->setOrder(['SORT' => 'ASC', 'ID' => 'DESC'])
     ->setLimit(10)
     ->fetchCollection();
 
-foreach ($elements as $e)
+foreach ($elements as $el)
 {
-    $e->getName();
-    $e->get('AUTHOR');
-    $e->get('SOURCE')?->getItem()?->getValue(); // label варианта
-    foreach ($e->get('TAGS')?->getAll() ?? [] as $tag) { $tag->getValue(); }
-
-    $photo = $e->get('PHOTO');
-    $photo?->getValue();       // fileId
-    $photo?->getDescription(); // описание
+    echo $el->getName();
+    echo $el->getAuthor()?->getValue(); // single property
 }
 ```
 
-Фильтры по свойствам:
-
-- Строка/число/HTML/справочник → `where('AUTHOR', 'Иван')`.
-- Список → `where('SOURCE.VALUE', $id)` или `.ITEM.XML_ID` / `.ITEM.VALUE`.
-- Файл → `where('PHOTO.VALUE', $fileId)`.
-- Множественные → `where('TAGS.VALUE', 'tag')`.
-
-## Обновление и удаление элемента
+For properties of type "List" (`L`), "Element" (`E`), "Section" (`G`), ORM provides access to the related entity:
 
 ```php
-$element = $elementClass::query()->where('CODE', 'security-update')->fetchObject();
-$element
-    ->setName('Критическое обновление')
-    ->removeAll('TAGS')
-    ->addTo('TAGS', 'критическое')
-    ->save();
-
-$element->delete();
-\CIBlockElement::UpdateSearch($element->getId()); // обязательно — ORM не трогает поиск
+// Property AUTHOR (List) -> CIBlockPropertyEnum
+echo $el->getAuthor()->getItem()->getValue();
+echo $el->getAuthor()->getItem()->getXmlId();
 ```
 
-Статические `::update($id, [...])`, `::delete($id)` работают **только с базовыми полями** — свойства через объект.
+## SEO Templates
 
-## SEO-шаблоны
-
-Значения `ELEMENT_META_TITLE`, `ELEMENT_META_KEYWORDS`, `ELEMENT_META_DESCRIPTION`, `SECTION_PAGE_TITLE` не хранятся — вычисляются по шаблонам `{=this.NAME} — #SITE_NAME#` с цепочкой наследования «элемент → раздел → инфоблок».
+SEO values (Meta Title, Description, etc.) are stored in `IPROPERTY_TEMPLATES`.
 
 ```php
-use Bitrix\Iblock\InheritedProperty;
+$iproperty = new \Bitrix\Iblock\InheritedProperty\ElementValues($iblockId, $elementId);
+$seoValues = $iproperty->getValues();
 
-(new InheritedProperty\IblockTemplates($iblockId))->set([
-    'ELEMENT_META_TITLE' => '{=this.NAME} — #SITE_NAME#',
-]);
-
-(new InheritedProperty\SectionTemplates($iblockId, $sectionId))->set([
-    'ELEMENT_META_TITLE' => 'Мероприятие: {=this.NAME}',
-]);
-
-$values = new InheritedProperty\ElementValues($iblockId, $elementId);
-$seo = $values->getValues();
-
-$values->clearValues();  // после изменений
+echo $seoValues['ELEMENT_META_TITLE'];
 ```
 
-`IPROPERTY_TEMPLATES` поддерживается только в `CIBlockElement::Add/Update`, не в ORM.
+## Checklist
 
-## Производительность
+- [ ] `API_CODE` is set in iblock settings.
+- [ ] Properties have unique `CODE`.
+- [ ] Elements/Sections are handled via ORM generated classes (`ElementXxxTable`).
+- [ ] Iblock creation/deletion uses `CIBlock` / `CIBlockSection` for full cleanup.
+- [ ] Permissions are set during iblock creation.
+- [ ] Properties version 2 is used for performance where possible.
+- [ ] File properties are set via `PropertyValue`.
 
-- `VERSION = 2` для инфоблоков с ≤50 свойств — даёт один JOIN вместо N.
-- Работай через ORM с `setSelect(['*', 'SOURCE.VALUE', 'IBLOCK_SECTION'])`, а не получай всё подряд.
-- Кешируй выборки: `['cache' => ['ttl' => 3600]]` или `startResultCache()` в компоненте.
-- Тегированный кеш: при изменении элемента/раздела модуль сам публикует теги `iblock_id_{IBLOCK_ID}` и `iblock_id_new` — привязывай к ним HTML-кеши компонентов.
-- Не читай свойства «в цикле» для каждой записи: добавь их сразу в `setSelect`.
+## Performance
 
-## Антипаттерны
-
-- Работа через `CIBlockElement::GetList` там, где есть ORM: теряется типизация, сложнее рефакторить.
-- Запись свойств без `CODE`: такие свойства невидимы в ORM, нужно задним числом «проставлять CODE всем».
-- Сохранение файла в свойство как `set('PHOTO', $fileId)` — нужно `PropertyValue`.
-- Удаление раздела через `$section->delete()` вместо `CIBlockSection::Delete` (остаются осиротевшие элементы, старые записи в поиске).
-- Забыть `UpdateSearch` после удаления элемента.
-- Использование `ElementTable`/`SectionTable` вместо скомпилированных классов.
-
-## Чек-лист
-
-- [ ] У инфоблока задан `API_CODE` в CamelCase.
-- [ ] У всех свойств есть `CODE`.
-- [ ] Для версии 2 управление свойствами идёт только через `CIBlockProperty`.
-- [ ] Запросы используют `setSelect` с нужными свойствами и связями за один запрос.
-- [ ] Файлы сохраняются через `CFile::SaveFile` + `PropertyValue`; миниатюры — `CFile::ResizeImage`.
-- [ ] `Highload`-справочник → свойство `USER_TYPE = directory`, хранение по `UF_XML_ID`.
-- [ ] `orm:annotate` выполнен после изменения состава инфоблоков — IDE видит `Elements\Element<ApiCode>Table`.
-- [ ] Удаление раздела выполняется `CIBlockSection::Delete`; после удаления элемента — `UpdateSearch`.
+- Limit `select` to needed fields — avoid `['*']` on elements with many properties.
+- Use ORM cache: `['cache' => ['ttl' => 3600]]` in queries.
+- Avoid N+1: use `fetchCollection()` with relations in `select`, not per-element property fetches.
+- `ElementTable` for ID+NAME lists is fine; for properties use compiled entity classes.
+- Disable `UpdateSearch` on bulk imports when search index refresh is not needed.

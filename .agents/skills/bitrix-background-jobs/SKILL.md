@@ -1,35 +1,35 @@
 ---
 name: bitrix-background-jobs
-description: Покрывает фоновые задачи и отложенную обработку в Bitrix — агенты CAgent, Application::addBackgroundJob(), очереди Messenger (messenger:consume, AsyncMessage, MessageHandler). Применяется при проектировании cron-задач, отложенных интеграций, рассылок и выборе между агентом, background job и очередью. Ключевые термины — agent, CAgent, addBackgroundJob, Messenger, queue, consumer, delayed job, cron.
+description: Covers background tasks and deferred processing in Bitrix — CAgent agents, Application::addBackgroundJob(), Messenger queues (brokers/queues, messenger:consume, AbstractMessage, AbstractReceiver). Applied when designing cron tasks, deferred integrations, mailings, and choosing between an agent, background job, and queue. Key terms — agent, CAgent, addBackgroundJob, Messenger, queue, broker, consumer, delayed job, cron.
 ---
 
-# Фоновые задачи в Bitrix
+# Background Tasks in Bitrix
 
-Три способа отложенной работы — у каждого своя ниша:
+Three ways of deferred work — each has its own niche:
 
-| Механизм | Когда использовать | Где живёт |
+| Mechanism | When to Use | Where It Lives |
 | --- | --- | --- |
-| `CAgent` | Периодические задачи (чистка, синхронизация, напоминания) | БД + hit/cron |
-| `Application::addBackgroundJob()` | Небольшая работа **после** отдачи ответа в рамках того же процесса | PHP-FPM, тот же запрос |
-| `Messenger` (очереди) | Продолжительные/надёжные задачи с возможностью параллелизма и ретраев | Отдельный процесс `messenger:consume` |
+| `CAgent` | Periodic tasks (cleanup, synchronization, reminders) | DB + hit/cron |
+| `Application::addBackgroundJob()` | Small work **after** sending the response within the same process | PHP-FPM, same request |
+| `Messenger` (queues) | Long-running/reliable tasks with parallelism and retries support | `web` background jobs or `messenger:consume` CLI |
 
-## Агенты (`CAgent`)
+## Agents (`CAgent`)
 
 ```php
 \CAgent::AddAgent(
     name: \Vendor\Module\Cli\Agent\QueueAgent::class . '::run();',
     module: 'vendor.module',
-    period: 'N',        // 'Y' — периодический (всегда через interval), 'N' — сдвигать next_exec
-    interval: 300,      // секунд
-    datecheck: '',      // дата следующего запуска
+    period: 'N',        // 'Y' — periodic (always by interval), 'N' — shift next_exec
+    interval: 300,      // seconds
+    datecheck: '',
     active: 'Y',
-    next_exec: '',      // yyyy-mm-dd hh:mm:ss
+    next_exec: '',
     sort: 100,
     existError: true,
 );
 ```
 
-Метод агента:
+Agent method:
 
 ```php
 namespace Vendor\Module\Cli\Agent;
@@ -43,19 +43,22 @@ final class QueueAgent
             ->get(\Vendor\Module\Application\Service\QueueProcessor::class)
             ->processBatch(limit: 100);
 
-        return self::class . '::run();'; // важно: вернуть строку для повторной регистрации
+        return self::class . '::run();'; // important: return string for re-registration
     }
 }
 ```
 
-### Правила
+### Rules
 
-- Агент работает либо на хитах, либо по cron (настройка в админке → «Настройки агентов»).
-- Для тяжёлых агентов **всегда** включай cron: иначе они блокируют пользовательский хит.
-- В `DoUninstall` модуля: `CAgent::RemoveModuleAgents('vendor.module')`.
-- Не держи состояние в статике между вызовами — процесс может смениться.
+- An agent works either on hits or via cron (Admin Panel → Agent Settings).
+- For heavy agents **always** enable cron — otherwise they block user hits.
+- An agent running longer than 10 minutes is blocked by the kernel.
+- Periodic (`period = 'Y'`) vs non-periodic (`period = 'N'`) agents differ in how `next_exec` is calculated.
+- In module's `DoUninstall`: `CAgent::RemoveModuleAgents('vendor.module')`.
+- Do not keep state in statics between calls — the process may change.
+- Combine `addBackgroundJob` for immediate post-response work with `CAgent` for scheduled retries.
 
-### Разовая задача на «через 5 минут»
+### One-time task for "in 5 minutes"
 
 ```php
 \CAgent::AddAgent(
@@ -71,7 +74,7 @@ final class QueueAgent
 
 ## `Application::addBackgroundJob()`
 
-Отложенный вызов **после** отдачи ответа (перед `fastcgi_finish_request`/в `onAfterEpilog`). Идеально для «дожить секунду и отправить метрику/письмо».
+Deferred call **after** sending the response (before `fastcgi_finish_request` / in `onAfterEpilog`). Ideal for metrics, welcome emails, or other short tail work.
 
 ```php
 \Bitrix\Main\Application::getInstance()->addBackgroundJob(
@@ -82,17 +85,21 @@ final class QueueAgent
 );
 ```
 
-### Ограничения
+### Constraints
 
-- Всё ещё один процесс PHP. Долгие задачи ухудшат время освобождения worker'а.
-- Нет гарантии доставки: если процесс упадёт — задача не выполнится.
-- Не подходит, если нужны ретраи и параллелизм — используй `Messenger`.
+- Still a single PHP process. Long tasks degrade worker release time.
+- No delivery guarantee: if the process crashes — the task won't execute.
+- Not suitable if retries and parallelism are needed — use `Messenger`.
 
-## Messenger (очереди сообщений)
+## Messenger (Message Queues)
 
-Новый модуль `messenger` — декларативные очереди на базе Symfony Messenger (`Bitrix\Messenger`).
+> **Alpha status** (main 25.100.300+): API may change without backward compatibility guarantees. Use with caution in production.
 
-### 1. Сообщение (DTO)
+Queue = logical channel from sender to handler. Message → broker → receiver processes it.
+
+Components: **message** (DTO), **handler** (`AbstractReceiver`), **broker** (storage), **queue** (named handler binding).
+
+### 1. Message (DTO)
 
 ```bash
 php bitrix/bitrix.php make:message SendWelcomeEmail -m vendor.module
@@ -102,16 +109,28 @@ php bitrix/bitrix.php make:message SendWelcomeEmail -m vendor.module
 namespace Vendor\Module\Public\Message;
 
 use Bitrix\Main\Messenger\Entity\AbstractMessage;
+use Bitrix\Main\Messenger\Entity\MessageInterface;
 
 final class SendWelcomeEmailMessage extends AbstractMessage
 {
     public function __construct(
         public readonly int $userId,
+        public readonly string $email,
     ) {}
+
+    public static function createFromData(array $data): MessageInterface
+    {
+        return new self(...$data);
+    }
 }
 ```
 
-### 2. Обработчик
+Requirements:
+- JSON-serializable data only: `string`, `int`, `float`, `bool`, `array`.
+- Implement `jsonSerialize()` for complex structures.
+- Include all data needed at processing time (entity may be deleted before delayed handling).
+
+### 2. Handler
 
 ```bash
 php bitrix/bitrix.php make:messagehandler SendWelcomeEmail \
@@ -119,82 +138,140 @@ php bitrix/bitrix.php make:messagehandler SendWelcomeEmail \
 ```
 
 ```php
-namespace Vendor\Module\Internals\Integration\Self\MessageHandler;
+namespace Vendor\Module\Internals\Messenger\Receiver;
 
-use Bitrix\Main\Messenger\Entity\AbstractReceiver;
-use Bitrix\Main\Messenger\Message\MessageInterface;
+use Bitrix\Main\Messenger\Entity\MessageInterface;
+use Bitrix\Main\Messenger\Receiver\AbstractReceiver;
 use Vendor\Module\Public\Message\SendWelcomeEmailMessage;
 
 final class SendWelcomeEmailHandler extends AbstractReceiver
 {
     public function __construct(
         private readonly \Vendor\Module\Application\Service\Mailer $mailer,
-    ) { parent::__construct(); }
+    ) {
+        parent::__construct();
+    }
 
-    public function handle(MessageInterface $message): void
+    protected function process(MessageInterface $message): void
     {
-        if (!$message instanceof SendWelcomeEmailMessage) { return; }
-        $this->mailer->sendWelcome($message->userId);
+        if (!$message instanceof SendWelcomeEmailMessage) {
+            throw new \Bitrix\Main\Messenger\Internals\Exception\UnprocessableMessageException(
+                $message->getId(),
+                $this->queueId,
+            );
+        }
+
+        $this->mailer->sendWelcome($message->userId, $message->email);
     }
 }
 ```
 
-### 3. Постановка задачи
+Handler rules:
+- Extend `AbstractReceiver`, implement **`protected function process()`** (not `handle()`).
+- Return `void` on success; throw on failure.
+- Exception types: `UnprocessableMessageException` (wrong message type), `UnrecoverableMessageException` (no retry), `RecoverableMessageException` (temporary, optional `getRetryDelay()`).
+
+### 3. Dispatching
 
 ```php
-use Bitrix\Main\Messenger\MessageBus;
+$message = new SendWelcomeEmailMessage($userId, $email);
+$message->send('vendor_module_queue');
 
-\Bitrix\Main\DI\ServiceLocator::getInstance()
-    ->get(MessageBus::class)
-    ->dispatch(new SendWelcomeEmailMessage($userId));
+// Delayed processing (1 hour):
+use Bitrix\Main\Messenger\Entity\ProcessingParam\DelayParam;
+use Bitrix\Main\Messenger\Entity\ProcessingParam\ItemIdParam;
+
+$message->send('vendor_module_queue', [
+    new DelayParam(3600),
+    new ItemIdParam('welcome-' . $userId),
+]);
 ```
 
-### 4. Консьюмер
+Do **not** use `MessageBus::dispatch()` — the current API is `$message->send('queue_name')`.
 
-```bash
-php bitrix/bitrix.php messenger:consume vendor_module_queue \
-    --time-limit=300 --sleep=1 --memory-limit=256M
-```
+### 4. Configuration in `.settings.php`
 
-Запускай под Supervisor/systemd с перезапуском. Флаги:
-
-- `--time-limit=300` — процесс завершается через 5 минут (защита от утечек памяти).
-- `--memory-limit=256M` — мягкий лимит.
-- `--sleep=1` — пауза, если очередь пустая.
-
-### 5. Конфигурация брокеров
-
-В `.settings.php`:
+Global config (`/bitrix/.settings.php` or `/local/.settings.php`) — brokers and cross-module queues:
 
 ```php
 'messenger' => [
     'value' => [
-        'transports' => [
-            'default' => ['dsn' => 'doctrine://default'],
-            'high'    => ['dsn' => 'redis://127.0.0.1:6379/messages'],
+        'run_mode' => 'web', // 'web' — background jobs on hit; 'cli' — requires messenger:consume
+        'brokers' => [
+            'default' => [
+                'type' => 'db',
+                'params' => [
+                    'table' => \Bitrix\Main\Messenger\Internals\Storage\Db\Model\MessengerMessageTable::class,
+                ],
+            ],
         ],
-        'routing' => [
-            \Vendor\Module\Public\Message\SendWelcomeEmailMessage::class => 'default',
+        'queues' => [
+            'vendor_module_queue' => [
+                'handler' => \Vendor\Module\Internals\Messenger\Receiver\SendWelcomeEmailHandler::class,
+            ],
         ],
     ],
     'readonly' => true,
 ],
 ```
 
-Поддерживаются Doctrine/MySQL, Redis, in-memory — зависит от установки.
+Module config (`/local/modules/vendor.module/.settings.php`) — module-specific queues:
 
-## Когда что выбрать
+```php
+'messenger' => [
+    'value' => [
+        'queues' => [
+            'vendor_module_queue' => [
+                'handler' => \Vendor\Module\Internals\Messenger\Receiver\SendWelcomeEmailHandler::class,
+                'limit' => 10,                    // messages per batch (default 50)
+                'total_processing_limit' => 50,     // max concurrent (must be >= limit)
+                'retry_strategy' => [
+                    'max_retries' => 3,
+                    'delay' => 5,
+                    'multiplier' => 2,
+                    'max_delay' => 300,
+                ],
+            ],
+        ],
+    ],
+    'readonly' => true,
+],
+```
 
-- **Периодическая задача по расписанию** → `CAgent` + cron-режим.
-- **«Почти мгновенный» хвост после ответа** (email-уведомление, метрика) → `addBackgroundJob`.
-- **Надёжная обработка с ретраями, большими объёмами, параллелизмом** → `Messenger`.
-- **Очень длительная разовая миграция данных** → консольная команда, запускаемая вручную.
+Notes:
+- Only broker type **`db`** is supported currently (not Redis/Doctrine DSN).
+- The `default` broker must always exist in global config.
+- Put queues in the module `.settings.php` they belong to; global config only for cross-module queues.
+- Custom broker table: extend `MessengerMessageTable`, register in `brokers`, create table in module installer.
 
-## Чек-лист
+### 5. Consumer (CLI mode)
 
-- [ ] Фоновый код не полагается на `$_SESSION`/`$_COOKIE` в контексте хита.
-- [ ] Агенты, регистрируемые модулем, удаляются в `DoUninstall`.
-- [ ] Для очередей настроены `time-limit`, `memory-limit`, перезапуск процесса.
-- [ ] Сообщения сериализуются (скаляры/DTO); не клади в них `EntityObject` с подгруженными связями.
-- [ ] Обработчик идемпотентен: повторная обработка того же сообщения безопасна.
-- [ ] Ошибки внутри задач логируются, но не «заглушаются» — используй PSR-3 логгер.
+Set `'run_mode' => 'cli'` and run under Supervisor/systemd:
+
+```bash
+php bitrix/bitrix.php messenger:consume vendor_module_queue \
+    --time-limit=300 --sleep=1
+```
+
+Flags:
+- `-t, --time-limit` — process lifetime in seconds.
+- `--sleep` — pause between iterations when queue is empty (default 1).
+
+For production with heavy queues, prefer `cli` mode with a supervisor over `web` mode.
+
+## When to Choose What
+
+- **Periodic task by schedule** → `CAgent` + cron mode.
+- **"Almost instant" tail after response** (email notification, metric) → `addBackgroundJob`.
+- **Reliable processing with retries, high volumes, parallelism** → `Messenger`.
+- **Very long one-time data migration** → console command run manually.
+
+## Checklist
+
+- [ ] Background code does not rely on `$_SESSION`/`$_COOKIE` in the hit context.
+- [ ] Agents registered by the module are removed in `DoUninstall`.
+- [ ] For CLI queues, `time-limit`, supervisor restart, and `run_mode=cli` are configured.
+- [ ] Messages contain scalars/DTOs with all data needed at processing time; no `EntityObject` with loaded relations.
+- [ ] Handler is idempotent: re-processing the same message is safe.
+- [ ] `total_processing_limit` >= `limit` in queue config.
+- [ ] Errors inside tasks are logged via PSR-3 logger, not silently suppressed.

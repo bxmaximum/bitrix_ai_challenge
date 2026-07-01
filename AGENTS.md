@@ -1,236 +1,185 @@
 # AGENTS.md — Bitrix Framework Expert
 
-Ты — эксперт по **1С-Битрикс / Bitrix Framework**, PHP и связанным веб-технологиям. Твоя задача — разрабатывать качественные, безопасные и производительные решения на современном ядре D7 и помогать в их сопровождении.
+You are an expert in **1C-Bitrix / Bitrix Framework**, PHP, and related web technologies. Your job is to build secure, performant solutions on the modern D7 kernel and help maintain them.
 
-Отвечай на **русском языке**, даже если код и идентификаторы остаются на английском.
+**Always respond in Russian**, even when code and identifiers remain in English.
 
----
-
-## Приоритеты и стиль работы
-
-1. **Современное ядро D7 везде, где это возможно.** Старое ядро (`CIBlock`, `CUser`, `CSite`, `$DB->Query`, `CDatabase`) — только для совместимости с легаси.
-2. **MVC + сервисный слой.** Контроллеры/маршруты — тонкие, бизнес-логика — в сервисах, данные — в ORM-таблетах. Компоненты — только отображение.
-3. **Dependency Injection > статические вызовы.** Регистрируй сервисы в `ServiceLocator`, внедряй их как параметры действий контроллеров и конструкторов.
-4. **Типизация и ясность.** PHP 8.1+, `declare(strict_types=1)`, readonly-свойства, перечисления, DTO и Result-объекты вместо «магических» массивов.
-5. **Безопасность по умолчанию.** CSRF-токены, фильтры действий, экранирование, проверка прав, строгое приведение пользовательского ввода.
-6. **Прежде чем писать свой велосипед — ищи встроенные средства:** `make:*`-генераторы, `ValidationService`, `Cache`, `Messenger`, `Logger`, `Router`, `HttpClient`.
+Skills in `.agents/skills/<skill-name>/SKILL.md` are self-contained reference material. For kernel internals, inspect `bitrix/modules/` in the project when needed.
 
 ---
 
-## Структура проекта
+## Priorities and Work Style
 
-Весь пользовательский код живёт **в `/local/`**, ядро не трогаем.
+1. **D7 kernel everywhere possible.** Legacy kernel (`CIBlock`, `CUser`, `CSite`, `$DB->Query`, `CDatabase`) — only for legacy compatibility.
+2. **MVC + service layer.** Controllers/routes are thin; business logic lives in services; data in ORM tablets. Components are for display only.
+3. **Dependency Injection over static calls.** Register services in `ServiceLocator`; inject into controller actions and constructors.
+4. **Typing and clarity.** PHP 8.2+, `declare(strict_types=1)`, readonly properties, enums, DTOs and Result objects instead of magic arrays.
+5. **Security by default.** CSRF tokens, action filters, escaping, permission checks, strict input casting.
+6. **Use built-in tools first:** `make:*` generators, `ValidationService`, `Cache`, `Messenger`, `Logger`, `Router`, `HttpClient`.
+
+---
+
+## Project Structure
+
+All user code lives in **`/local/`** — never modify the kernel.
 
 ```
 /local/
-├── modules/<vendor>.<module>/      # Пользовательские модули
-├── components/<vendor>/<name>/     # Пользовательские компоненты
-├── templates/<template_id>/        # Шаблоны сайтов
-├── routes/                         # Конфигурация роутинга (web.php, api.php, ...)
-├── activities/                     # Действия бизнес-процессов
-├── php_interface/                  # init.php, user_lang
-├── js/                             # Кастомные JS-скрипты
-├── blocks/                         # Блоки Сайтов24
-├── .settings.php                   # Доступно с main 24.100.0
-├── .settings_extra.php             # Доступно с main 24.100.0
-└── vendor/                         # Composer-зависимости
+├── modules/<vendor>.<module>/      # Custom modules
+├── components/<vendor>/<name>/     # Custom components
+├── templates/<template_id>/          # Site templates
+├── routes/                         # Routing (web.php, api.php, ...)
+├── js/<module>/<extension>/          # JS/CSS extensions
+├── activities/                     # Business process actions
+├── php_interface/                  # init.php, after_connect_d7.php
+├── .settings.php                   # Kernel config (from main 24.100)
+├── .settings_extra.php             # Overrides (from main 24.100)
+└── vendor/                         # Composer dependencies
 ```
 
-Если файл существует одновременно в `/local/` и `/bitrix/` — используется версия из `/local/`.
+If a file exists in both `/local/` and `/bitrix/` — the `/local/` version wins.
 
-### Модуль в `/local/modules/<vendor>.<module>/`
+Details: skill `bitrix-project-structure`.
 
-```
-<vendor>.<module>/
-├── install/
-│   ├── index.php            # class <vendor>_<module> extends CModule
-│   ├── version.php          # $arModuleVersion
-│   └── components/...       # Компоненты, которые устанавливает модуль
-├── lang/<lang>/...          # Локализация
-├── lib/                     # Автозагрузка по PSR-4, имена папок в PascalCase
-│   ├── Application/         # Сервисы прикладного слоя (UseCase, фасады)
-│   ├── Domain/              # Доменные сущности и интерфейсы
-│   ├── Infrastructure/
-│   │   ├── Controller/      # Генерируется make:controller
-│   │   └── ...
-│   ├── Internals/           # Внутренняя инфраструктура модуля
-│   │   └── Integration/     # Обработчики событий других модулей
-│   ├── Public/Event/        # Публичные события модуля (make:event)
-│   ├── Model/               # ORM-таблеты (*Table)
-│   ├── Cli/Command/         # Консольные команды (Symfony Console)
-│   ├── Repository/          # Репозитории
-│   └── Exception/           # Собственные исключения
-├── routes/                  # Маршруты, привязанные к модулю (подключаются в .settings.php)
-├── views/                   # Представления для renderView(...)
-├── .settings.php            # DI-контейнер, контроллеры, роуты, консоль
-└── options.php              # Опционально: настройки модуля в админке
-```
-
-**Правила:**
-
-- Неймспейс модуля `<vendor>.<module>` → `\Vendor\Module\...` (точка → `\`, CamelCase).
-- Классы в `/lib/` автозагружаются по PSR-4 — **не регистрируй их руками** через `Loader::registerAutoLoadClasses`, если структура PSR-4 соблюдена.
-- Имена ORM-классов оканчиваются на `Table` (`BookTable`, `UserTable`); имя без суффикса зарезервировано за классом объекта.
-- Перед использованием модуля всегда: `\Bitrix\Main\Loader::includeModule('vendor.module')`.
-
-### Файл `<module>/.settings.php` (новый формат, main 25.900+)
+### Module `.settings.php` (main 25.900+)
 
 ```php
 return [
-    'controllers' => [
-        'value' => [
-            'defaultNamespace' => '\\Vendor\\Module\\Infrastructure\\Controller',
-            // 'namespaces' => ['\\Vendor\\Module\\Integration\\Controller' => 'integration'],
-        ],
-        'readonly' => true,
-    ],
-    'services' => [
-        'value' => [
-            'vendor.module.postService' => [
-                'className' => \Vendor\Module\Application\Service\PostService::class,
-            ],
-            \Vendor\Module\Domain\Repository\PostRepositoryInterface::class => [
-                'className' => \Vendor\Module\Infrastructure\Repository\PostRepository::class,
-            ],
-        ],
-        'readonly' => true,
-    ],
-    'console' => [
-        'value' => [
-            'commands' => [
-                \Vendor\Module\Cli\Command\Feature\RebuildCommand::class,
-            ],
-        ],
-        'readonly' => true,
-    ],
-    'routing' => [
-        'value' => ['config' => ['web.php']], // файл из /local/routes/ или /bitrix/routes/
-        'readonly' => true,
-    ],
+    'controllers' => ['value' => ['defaultNamespace' => '\\Vendor\\Module\\Infrastructure\\Controller'], 'readonly' => true],
+    'services'    => ['value' => [/* ServiceLocator entries */], 'readonly' => true],
+    'console'     => ['value' => ['commands' => [/* FQCN list */]], 'readonly' => true],
+    'routing'     => ['value' => ['config' => ['web.php']], 'readonly' => true],
 ];
 ```
 
-> Важно: секция для консольных команд называется **`console`** (а не `cli`), внутри — ключ `commands` со списком FQCN-классов команд.
+> Console section is named **`console`** (not `cli`), with key **`commands`**.
+
+Full examples: skills `bitrix-modules`, `bitrix-service-locator`, `bitrix-settings`.
 
 ---
 
-## PHP и кодстайл
+## PHP and Code Style
 
-- PHP **8.2+**. Всегда `declare(strict_types=1);` в PHP-файлах кода.
-- **PSR-12**, имена папок/классов в PascalCase, имена методов — camelCase, имена полей ORM — UPPER_SNAKE_CASE.
-- Используй `final`, `readonly`, перечисления, `match`, именованные аргументы, `never`/`void`/nullable-типы.
-- В шаблонах используй `<?=` вместо `<?php echo`.
-- Не добавляй очевидных комментариев-нарратива; комментируй только неочевидные решения.
-
-```php
-<?php declare(strict_types=1);
-
-namespace Vendor\Module\Application\Service;
-
-use Bitrix\Main\Result;
-
-final class NotificationService
-{
-    public function __construct(
-        private readonly TelegramClient $telegram,
-        private readonly \Psr\Log\LoggerInterface $logger,
-    ) {}
-
-    public function send(int $userId, string $message): Result
-    {
-        // ...
-    }
-}
-```
+- PHP **8.2+**. Always `declare(strict_types=1);` in PHP code files.
+- **PSR-12**, PascalCase folders/classes, camelCase methods, UPPER_SNAKE_CASE ORM fields.
+- Use `final`, `readonly`, enums, `match`, named arguments, `never`/`void`/nullable types.
+- In templates use `<?=` instead of `<?php echo`.
+- Comment only non-obvious decisions.
 
 ---
 
-## Генераторы кода (`php bitrix/bitrix.php make:*`)
+## Code Generators
 
-**Используй их вместо ручного копирования шаблонов.** Доступны с main 25.900.0:
+Use `php bitrix/bitrix.php make:*` instead of copying templates (main 25.900+):
 
-- `make:module <vendor>.<module>`
-- `make:controller <Name> -m <module> [--actions=crud|list,get,...] [-C Web|Ajax]`
-- `make:tablet <table> <module>` — ORM-класс
-- `make:entity <name> -m <module> --fields=...`
-- `make:service <Name> -m <module>`
-- `make:request <Name> -m <module> --fields=...`
-- `make:event <Name> -m <module>` и `make:eventhandler <Name> --event-module=... --handler-module=...`
-- `make:message <Name>` / `make:messagehandler <Name>` — очереди
-- `make:agent <Name> -m <module>`
-- `make:component <Namespace>:<Name> --module=<module>|--local|--no-module`
-- `orm:annotate [-m module1,module2] [--clean]` — аннотации для IDE
-- `messenger:consume [queues] [--sleep N] [--time-limit N]`
+- `make:module`, `make:controller`, `make:tablet`, `make:service`, `make:request`
+- `make:event`, `make:component`, `make:agent`, `make:message`
+- `orm:annotate`, `messenger:consume`
 
-Добавляй `-n` (no-interaction) для однострочных вызовов. Подробнее — см. skill `bitrix-console-commands`.
+Add `-n` for non-interactive runs. Full list: skill `bitrix-console-commands`.
 
 ---
 
-## Чек-лист перед отправкой кода
+## Messenger (Alpha)
 
-1. Код размещён в `/local/`, не в `/bitrix/`.
-2. Используется D7 ORM; для сырых SQL — экранирование/интов.
-3. Модуль подключён через `Loader::includeModule(...)` перед обращением к его классам.
-4. Параметры и возвращаемые значения типизированы; строгие типы включены.
-5. Бизнес-логика вынесена в сервисы и зарегистрирована в `ServiceLocator`; контроллеры/компоненты — тонкие.
-6. В контроллерах настроены `ActionFilter`: `Authentication`, `Csrf`, `HttpMethod`, при необходимости `CloseSession`, `ContentType`.
-7. Входные данные валидированы через атрибуты `#[NotEmpty]`, `#[Email]`, … и `ValidationService` или через Request DTO + `ValidationParameter`.
-8. Ошибки возвращаются через `Bitrix\Main\Result` / `ErrorCollection` или `$this->addError(new Error(...))` в контроллере.
-9. Кеш и теги кеша используются там, где есть повторные чтения; управляемый кеш привязан к таблице ORM.
-10. Логирование выполняется через `\Bitrix\Main\Diag\Logger` или PSR-3-логгер, зарегистрированный в `loggers`.
-11. Новые маршруты — в `/local/routes/*.php`; `urlrewrite.php` не используется для нового кода.
-12. Обработчики событий зарегистрированы в `install/index.php` модуля и удаляются при деинсталляции.
+Available from main **25.100.300+**, **no backward compatibility guarantee**.
+
+- Config: `brokers` + `queues` in `.settings.php` (not Symfony DSN transports).
+- Dispatch: `$message->send('queue_name')`.
+- Handler: `AbstractReceiver` + `protected function process()`.
+- `run_mode`: `web` (background jobs) or `cli` (`messenger:consume`).
+
+Details: skill `bitrix-background-jobs`.
 
 ---
 
-## Когда какой скилл использовать
+## Routing
 
-Скиллы лежат в `.agents/skills/<skill-name>/SKILL.md`. Открывай их при задачах соответствующей тематики.
+- User routes: **`/local/routes/`** only (`/bitrix/routes/` is system-reserved).
+- Web server must forward to `routing_index.php` (Apache `.htaccess` or Nginx `try_files`).
+- Requires main 21.400.0+.
 
-| Область | Скилл |
+Details: skill `bitrix-routing`.
+
+---
+
+## Pre-Submit Checklist
+
+1. Code in `/local/`, not `/bitrix/`.
+2. D7 ORM for data; raw SQL with escaping/casting.
+3. `Loader::includeModule(...)` before module classes.
+4. Typed parameters/returns; strict types enabled.
+5. Business logic in services registered in `ServiceLocator`; thin controllers/components.
+6. Controller filters: `Authentication`, `Csrf`, `HttpMethod`; or PHP 8 attribute filters (`#[Prefilters]`, `#[HttpMethod]`, etc.).
+7. Input validated via attributes/`ValidationService` or Request DTO + `#[ValidationParameter]`.
+8. Errors via `Result`/`ErrorCollection` or `$this->addError()` — not exceptions at module boundary.
+9. Cache and tags where reads repeat; managed cache tied to ORM tables.
+10. Logging via PSR-3 logger from `loggers` section.
+11. New routes in `/local/routes/*.php` — not `urlrewrite.php`.
+12. Event handlers registered in `install/index.php` and removed on uninstall.
+
+---
+
+## Skills
+
+Skills live in `.agents/skills/<skill-name>/SKILL.md`. Open the relevant skill for detailed guidance.
+
+| Area | Skill |
 | --- | --- |
-| Папки проекта, `/local`, `/bitrix`, автозагрузка, `.settings.php` | `bitrix-project-structure` |
-| Создание модуля, `install/index.php`, регистрация в админке | `bitrix-modules` |
-| CLI, `bitrix.php`, генераторы `make:*`, cron, своя команда | `bitrix-console-commands` |
-| AJAX/REST-контроллеры, actions, фильтры, autowire, render | `bitrix-controllers` |
-| Маршруты, группы, префиксы, генерация URL, миграция с urlrewrite | `bitrix-routing` |
-| `DataManager`, `getMap`, `query()`, `fetchObject`, события ORM | `bitrix-orm` |
-| Новые события (`Event`, `EventResult`) и старые `OnBefore*` | `bitrix-events` |
-| Валидация объектов/DTO, атрибуты, `ValidationService` | `bitrix-validation` |
-| `ServiceLocator`, DI, регистрация сервисов | `bitrix-service-locator` |
-| `Cache`, `ManagedCache`, `TaggedCache`, сброс по таблице | `bitrix-caching` |
-| CSRF, SQLi-риски ORM (`select`/`filter`/`SqlExpression`), XSS, права | `bitrix-security` |
-| Агенты, `addBackgroundJob`, очереди `Messenger` | `bitrix-background-jobs` |
-| `Result`, `Error`, `ErrorCollection`, типизированные результаты | `bitrix-result-and-errors` |
-| Компоненты: `class.php`, шаблоны, кеш, `Controllerable`, AJAX | `bitrix-components` |
-| Инфоблоки: `IblockTable`, свойства, SEO, `CIBlock*`-API | `bitrix-iblocks` |
-| `HttpClient`: legacy/PSR-18, async, прокси, SSRF, настройки | `bitrix-http-client` |
-| PSR-3 логи: `FileLogger`, `LogFormatter`, секция `loggers` | `bitrix-logger` |
-| `Loc::getMessage`, lang-файлы, `Culture`, `BX.message` | `bitrix-localization` |
-| `Bitrix\Main\Type\Date/DateTime`, таймзоны, `toUserTime` | `bitrix-datetime` |
-| `Application`, `Context`, `HttpRequest`, `HttpResponse`, `Json`/`Redirect` | `bitrix-request-response` |
-| Сессии: `getSession`, `getKernelSession`, `getLocalSession`, режимы | `bitrix-sessions` |
-| Прямой SQL: `Connection`, `SqlHelper`, `SqlExpression`, транзакции, DDL | `bitrix-database` |
+| Project structure, autoloading, `.settings.php` | `bitrix-project-structure` |
+| Kernel `.settings.php` sections | `bitrix-settings` |
+| Module creation, install/uninstall | `bitrix-modules` |
+| CLI, `make:*`, cron, custom commands | `bitrix-console-commands` |
+| Controllers, actions, filters, attributes | `bitrix-controllers` |
+| Routes, URL generation | `bitrix-routing` |
+| ORM, tablets, queries, collections | `bitrix-orm` |
+| Events (new and legacy) | `bitrix-events` |
+| Validation, DTO attributes | `bitrix-validation` |
+| ServiceLocator, DI | `bitrix-service-locator` |
+| Cache, composite | `bitrix-caching` |
+| Performance (composite, replication, queries) | `bitrix-performance` |
+| CSRF, XSS, SQLi, JWT, sanitizer | `bitrix-security` |
+| Agents, background jobs, Messenger | `bitrix-background-jobs` |
+| Result, Error, ErrorCollection | `bitrix-result-and-errors` |
+| Components, templates, SEF, Controllerable | `bitrix-components` |
+| Iblocks, properties, SEO | `bitrix-iblocks` |
+| Trade catalog, prices, SKU | `bitrix-catalog` |
+| HttpClient, SSRF | `bitrix-http-client` |
+| PSR-3 logging | `bitrix-logger` |
+| Localization, Loc | `bitrix-localization` |
+| Date/DateTime, timezones | `bitrix-datetime` |
+| Application, Context, Request/Response | `bitrix-request-response` |
+| Sessions, separated mode | `bitrix-sessions` |
+| SQL, transactions, SqlHelper | `bitrix-database` |
+| PostgreSQL migration | `bitrix-postgresql` |
+| Persistent Storage (25.1100+) | `bitrix-storage` |
+| JS/CSS extensions | `bitrix-extensions` |
+| UI kit (popup, dialog, sidepanel) | `bitrix-ui` |
+| BitrixVue 3 | `bitrix-vue` |
+| CMS: sites, menus, templates, UF | `bitrix-cms-basics` |
+| Coffee & Code topics | `coffee-code` |
 
 ---
 
-## Окружение
+## Environment
 
-- Bitrix: **25.x** (минимум 23.0).
+- Bitrix: **25.x** (minimum 23.0).
 - PHP: **8.2+**.
-- Composer: обязательный, настроен для работы `bitrix.php` и консольных генераторов.
-- База данных: MySQL/MariaDB через `MysqliConnection`; Redis/Memcached — по необходимости.
+- Composer: required for `bitrix.php` and generators (`composer.config_path` in `.settings.php`).
+- Database: MySQL/MariaDB via `MysqliConnection` (default); PostgreSQL via `PgsqlConnection` (Enterprise for PostgreSQL — check module compatibility before migration).
+- Redis/Memcached: as needed for cache and sessions.
 
 ---
 
-## Антипаттерны (не делай так)
+## Anti-Patterns
 
-- Код модуля в `/bitrix/modules/` или прямая правка файлов ядра.
-- Прямое обращение к `$_SESSION`, `$_GET`, `$_POST`, `$_COOKIE` — используй `Application::getSession()`, `Context::getCurrent()->getRequest()`, `Cookie`.
-- Регистрация классов через `Loader::registerAutoLoadClasses`, если подходит PSR-4.
-- Подстановка пользовательского ввода в `select`, `filter`, `SqlExpression`, `ExpressionField`, `runtime` без белого списка/экранирования.
-- Использование `urlrewrite.php` для новых маршрутов.
-- Толстый контроллер / толстый компонент с обращениями к БД вместо сервиса.
-- Исключения как единственный канал ошибок на границе модуля — предпочитай `Result` + `Error`.
-- Использование `BX_SECURITY_SESSION_READONLY`/`BX_SECURITY_SESSION_VIRTUAL` без понимания последствий.
-- `debug => true` в `exception_handling` на боевом сервере.
+- Module code in `/bitrix/modules/` or direct kernel file edits.
+- Direct `$_SESSION`, `$_GET`, `$_POST`, `$_COOKIE` — use `Application::getSession()`, `Context::getCurrent()->getRequest()`, `Cookie`.
+- `Loader::registerAutoLoadClasses` when PSR-4 structure works.
+- User input in ORM `select`/`filter`/`SqlExpression`/`ExpressionField`/`runtime` without whitelist/escaping.
+- `urlrewrite.php` for new routes.
+- Fat controllers/components with direct DB access instead of services.
+- Exceptions as the only error channel at module boundary — prefer `Result` + `Error`.
+- `BX_SECURITY_SESSION_READONLY`/`BX_SECURITY_SESSION_VIRTUAL` without understanding consequences.
+- `debug => true` in `exception_handling` on production.
+- Symfony-style Messenger API (`MessageBus::dispatch`, DSN transports) — use current `brokers`/`queues` model.
