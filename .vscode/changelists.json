@@ -1,0 +1,43 @@
+{
+  "changelists": [
+    {
+      "name": "Default",
+      "files": [
+        "models/grok-4-5/modules/vendor.favorites/.settings.php",
+        "models/grok-4-5/modules/vendor.favorites/README.md",
+        "models/grok-4-5/modules/vendor.favorites/include.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/.description.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/.parameters.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/class.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/lang/ru/.description.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/lang/ru/.parameters.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/lang/ru/class.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/templates/.default/lang/ru/template.php",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/templates/.default/script.js",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/templates/.default/style.css",
+        "models/grok-4-5/modules/vendor.favorites/install/components/vendor/favorites.button/templates/.default/template.php",
+        "models/grok-4-5/modules/vendor.favorites/install/index.php",
+        "models/grok-4-5/modules/vendor.favorites/install/unstep1.php",
+        "models/grok-4-5/modules/vendor.favorites/install/version.php",
+        "models/grok-4-5/modules/vendor.favorites/lang/en/install/index.php",
+        "models/grok-4-5/modules/vendor.favorites/lang/ru/install/index.php",
+        "models/grok-4-5/modules/vendor.favorites/lang/ru/install/unstep1.php",
+        "models/grok-4-5/modules/vendor.favorites/lang/ru/lib/Controller/Favorites.php",
+        "models/grok-4-5/modules/vendor.favorites/lang/ru/lib/Service/FavoritesService.php",
+        "models/grok-4-5/modules/vendor.favorites/lang/ru/options.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Config/ModuleOptions.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Controller/Favorites.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/EventHandler.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Model/FavoritesTable.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Repository/FavoritesRepository.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Service/CookieService.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Service/FavoritesService.php",
+        "models/grok-4-5/modules/vendor.favorites/lib/Service/ProductService.php",
+        "models/grok-4-5/modules/vendor.favorites/options.php",
+        ".vscode/changelists.json",
+        "results/detailed-analysis/cursor-grok-4.5-review.md"
+      ]
+    }
+  ],
+  "active": "Default"
+}
