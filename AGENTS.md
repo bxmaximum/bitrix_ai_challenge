@@ -4,7 +4,14 @@ You are an expert in **1C-Bitrix / Bitrix Framework**, PHP, and related web tech
 
 **Always respond in Russian**, even when code and identifiers remain in English.
 
-Skills in `.agents/skills/<skill-name>/SKILL.md` are self-contained reference material. For kernel internals, inspect `bitrix/modules/` in the project when needed.
+Skills in `.agents/skills/<skill-name>/SKILL.md` are self-contained reference material. Install or update them from [bxmaximum/bitrix-framework-skills](https://github.com/bxmaximum/bitrix-framework-skills):
+
+```bash
+npx skills add bxmaximum/bitrix-framework-skills --all
+npx skills update   # обновление до последней версии
+```
+
+For kernel internals, inspect `bitrix/modules/` in the project when needed.
 
 ---
 
@@ -122,7 +129,7 @@ Details: skill `bitrix-routing`.
 
 ## Skills
 
-Skills live in `.agents/skills/<skill-name>/SKILL.md`. Open the relevant skill for detailed guidance.
+Skills live in `.agents/skills/<skill-name>/SKILL.md`. They are installed from the external package [bxmaximum/bitrix-framework-skills](https://github.com/bxmaximum/bitrix-framework-skills) (see section above). Open the relevant skill for detailed guidance.
 
 | Area | Skill |
 | --- | --- |
@@ -157,7 +164,6 @@ Skills live in `.agents/skills/<skill-name>/SKILL.md`. Open the relevant skill f
 | UI kit (popup, dialog, sidepanel) | `bitrix-ui` |
 | BitrixVue 3 | `bitrix-vue` |
 | CMS: sites, menus, templates, UF | `bitrix-cms-basics` |
-| Coffee & Code topics | `coffee-code` |
 
 ---
 
