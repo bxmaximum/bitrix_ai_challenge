@@ -6,3 +6,4 @@ telegram/
 skills-lock.json
 .claude/
 agent/
+.vscode/
