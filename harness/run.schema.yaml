@@ -1,0 +1,20 @@
+# Метаданные одного прогона: submissions/<app>/<model>/run.yaml
+# Заполняется скиллом /grade из репозитория грейдера по ответам автора.
+
+app: ""              # claude-code | cursor | codex | opencode | ...
+model_snapshot: ""   # точная версия модели, не «Sonnet» (напр. claude-sonnet-5-20260114)
+run_date: ""         # YYYY-MM-DD, день итерации 1
+bitrix_kernel: ""    # версия main-модуля стенда
+task_version: ""     # git-хэш TASK.md на момент прогона
+skills_version: ""   # коммит bxmaximum/bitrix-framework-skills (скиллы + AGENTS.md)
+iterations: 0        # 1 = сделано с первого прогона; >10 — в рейтинг не публикуется
+duration_min: 0      # чистое время работы агента, все итерации
+tokens_in: 0
+tokens_out: 0
+cache_read: 0
+cache_write: 0
+cost_kind: ""        # api_usd | limit_5h | limit_weekly | limit_monthly
+cost_value: 0        # доллары для api_usd, проценты для limit_*
+cost_plan: ""        # тариф подписки, от лимита которого считан процент (напр. Pro ($20)); пусто для api_usd
+published: true      # false, если итераций больше 10 или DNF
+note: ""             # timeout / DNF / прочее

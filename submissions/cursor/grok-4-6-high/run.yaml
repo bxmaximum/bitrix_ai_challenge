@@ -1,0 +1,17 @@
+app: "cursor"
+model_snapshot: "Grok 4.6 High"
+run_date: "2026-09-06"
+bitrix_kernel: "26.700.0"
+task_version: "958e215"
+skills_version: "66c40e0"
+iterations: 1
+duration_min: 45
+tokens_in: 628233
+tokens_out: 146077
+cache_read: 17497344
+cache_write: 0
+cost_kind: "limit_monthly"
+cost_value: 2
+cost_plan: "Pro ($20)"
+published: true
+note: ""
