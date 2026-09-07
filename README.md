@@ -6,6 +6,8 @@
 
 **BXMax:** [bxmax.ru](https://bxmax.ru) · [Telegram](https://t.me/bxmaximum) · [Bitrix AI Challenge](https://bxmax.ru/bitrix-ai/challenge)
 
+**Результаты и разборы каждого прогона — на сайте: [bxmax.ru/bitrix-ai/challenge](https://bxmax.ru/bitrix-ai/challenge).** Здесь, в репозитории, — задание, рубрика и исходники сабмишенов.
+
 **Единица сравнения — связка: приложение + модель + скиллы.** Один и тот же агентский стек ([bitrix-framework-skills](https://github.com/bxmaximum/bitrix-framework-skills)) разворачивается на стенде для всех участников; насколько хорошо приложение умеет им распоряжаться — часть измеряемого результата. 
 
 ## Задача
@@ -27,10 +29,10 @@
 
 ### Тир B
 
-| Приложение | Модель | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| Claude Code | Claude Opus 5 High | 79.5 | 85.0 | **82.2** | 1 | 90 мин | 14% 5ч · Max 5x ($100) | [verdict](submissions/claude-code/claude-opus-5-high/verdict.md) |
-| Cursor | Grok 4.6 High | 65.5 | 78.5 | **71.7** | 1 | 45 мин | 2% мес. · Pro ($20) | [verdict](submissions/cursor/grok-4-6-high/verdict.md) |
+| Приложение | Модель | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| Claude Code | Claude Opus 5 High | 79.5 | 85.0 | **82.2** | 1 | 90 мин | 14% 5ч · Max 5x ($100) | [verdict](submissions/claude-code/claude-opus-5-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-claude-opus-5-high) |
+| Cursor | Grok 4.6 High | 65.5 | 78.5 | **71.7** | 1 | 45 мин | 2% мес. · Pro ($20) | [verdict](submissions/cursor/grok-4-6-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/cursor-grok-4-6-high) |
 
 Каждая строка — один прогон. Всё по прогону лежит в `submissions/<app>/<model>/`: `run.yaml` (метаданные), `feedback.md` (замечания между итерациями дословно), `code/` (код агента и `SOLUTION.md`), `screenshots/` (обложка, полный скриншот страницы, галерея), `review-model.md`, `review-author.md`, `verdict.md` (баллы по критериям, комментарии, вывод).
 
