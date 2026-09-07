@@ -1,0 +1,17 @@
+app: "claude-code"
+model_snapshot: "Claude Opus 5 High"
+run_date: "2026-09-07"
+bitrix_kernel: "26.700.0"
+task_version: "6c7e423"
+skills_version: "66c40e0"
+iterations: 1
+duration_min: 90
+tokens_in: 1256
+tokens_out: 546681
+cache_read: 227901325
+cache_write: 1699004
+cost_kind: "limit_5h"
+cost_value: 14
+cost_plan: "Max 5x ($100)"
+published: true
+note: ""
