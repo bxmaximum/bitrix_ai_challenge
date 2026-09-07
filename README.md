@@ -29,6 +29,7 @@
 
 | Приложение | Модель | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| Claude Code | Claude Opus 5 High | 79.5 | 85.0 | **82.2** | 1 | 90 мин | 14% 5ч · Max 5x ($100) | [verdict](submissions/claude-code/claude-opus-5-high/verdict.md) |
 | Cursor | Grok 4.6 High | 65.5 | 78.5 | **71.7** | 1 | 45 мин | 2% мес. · Pro ($20) | [verdict](submissions/cursor/grok-4-6-high/verdict.md) |
 
 Каждая строка — один прогон. Всё по прогону лежит в `submissions/<app>/<model>/`: `run.yaml` (метаданные), `feedback.md` (замечания между итерациями дословно), `code/` (код агента и `SOLUTION.md`), `screenshots/` (обложка, полный скриншот страницы, галерея), `review-model.md`, `review-author.md`, `verdict.md` (баллы по критериям, комментарии, вывод).
