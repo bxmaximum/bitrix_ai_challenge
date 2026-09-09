@@ -1,0 +1,17 @@
+app: "codex"
+model_snapshot: "GPT 5.6 Sol High"
+run_date: "2026-09-08"
+bitrix_kernel: "26.700.0"
+task_version: "6c7e423"
+skills_version: "66c40e0"
+iterations: 1
+duration_min: 63
+tokens_in: 851238
+tokens_out: 89284
+cache_read: 21354880
+cache_write: 0
+cost_kind: "limit_5h"
+cost_value: 64
+cost_plan: "Plus ($20)"
+published: true
+note: ""
