@@ -1,0 +1,17 @@
+app: "codex"
+model_snapshot: "GPT 6 Astra High"
+run_date: "2026-09-22"
+bitrix_kernel: "26.750.0"
+task_version: "6c7e423"
+skills_version: "66c40e0"
+iterations: 1
+duration_min: 36
+tokens_in: 716388
+tokens_out: 56967
+cache_read: 12551680
+cache_write: 0
+cost_kind: "limit_5h"
+cost_value: 180
+cost_plan: "Plus ($20)"
+published: true
+note: ""

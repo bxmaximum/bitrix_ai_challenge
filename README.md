@@ -39,6 +39,7 @@
 | Связка | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
 | Codex · GPT 5.6 Sol High | 71.5 | 65.5 | **68.4** | 1 | 63 мин | 64% 5ч · Plus ($20) | [verdict](submissions/codex/gpt-5-6-sol-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/codex-gpt-5-6-sol-high) |
+| Codex · GPT 6 Astra High | 73.0 | 51.5 | **61.3** | 1 | 36 мин | 180% 5ч · Plus ($20) | [verdict](submissions/codex/gpt-6-astra-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/codex-gpt-6-astra-high) |
 
 Каждая строка — один прогон. Всё по прогону лежит в `submissions/<app>/<model>/`: `run.yaml` (метаданные), `feedback.md` (замечания между итерациями дословно), `code/` (код агента и `SOLUTION.md`), `screenshots/` (обложка, полный скриншот страницы, галерея), `review-model.md`, `review-author.md`, `verdict.md` (баллы по критериям, комментарии, вывод).
 
