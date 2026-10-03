@@ -1,0 +1,5 @@
+<?php
+
+$MESS['BXMAX_BOOKING_MENU_TITLE'] = 'Онлайн-запись';
+$MESS['BXMAX_BOOKING_MENU_ENTRIES'] = 'Заявки';
+$MESS['BXMAX_BOOKING_MENU_SLOTS'] = 'Слоты';

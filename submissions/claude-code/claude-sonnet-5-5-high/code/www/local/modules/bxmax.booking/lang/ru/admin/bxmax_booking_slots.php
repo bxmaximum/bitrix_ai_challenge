@@ -1,0 +1,18 @@
+<?php
+
+$MESS['BXMAX_BOOKING_SLOTS_TITLE'] = 'Слоты расписания';
+$MESS['BXMAX_BOOKING_COL_DATE'] = 'Дата';
+$MESS['BXMAX_BOOKING_COL_STARTS'] = 'Начало';
+$MESS['BXMAX_BOOKING_COL_ENDS'] = 'Окончание';
+$MESS['BXMAX_BOOKING_COL_STATUS'] = 'Статус';
+$MESS['BXMAX_BOOKING_COL_ENTRY'] = 'Заявка №';
+$MESS['BXMAX_BOOKING_STATUS_FREE'] = 'Свободен';
+$MESS['BXMAX_BOOKING_STATUS_BOOKED'] = 'Занят заявкой';
+$MESS['BXMAX_BOOKING_STATUS_CLOSED'] = 'Закрыт';
+$MESS['BXMAX_BOOKING_ACTION_CLOSE'] = 'Закрыть слот';
+$MESS['BXMAX_BOOKING_ACTION_OPEN'] = 'Открыть слот';
+
+$MESS['BXMAX_BOOKING_COL_MASTER'] = 'Мастер';
+$MESS['BXMAX_BOOKING_COL_SERVICE'] = 'Услуга';
+$MESS['BXMAX_BOOKING_NAV'] = 'Записи';
+

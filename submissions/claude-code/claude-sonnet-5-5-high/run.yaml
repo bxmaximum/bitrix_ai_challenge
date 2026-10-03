@@ -1,0 +1,17 @@
+app: "claude-code"
+model_snapshot: "Claude Sonnet 5.5 High"
+run_date: "2026-10-03"
+bitrix_kernel: "26.800.0"
+task_version: "6c7e423"
+skills_version: "5a18047"
+iterations: 1
+duration_min: 36
+tokens_in: 300
+tokens_out: 2600
+cache_read: 46900000
+cache_write: 975600
+cost_kind: "limit_5h"
+cost_value: 56
+cost_plan: "Pro ($20)"
+published: true
+note: ""

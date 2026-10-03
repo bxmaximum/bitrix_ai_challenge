@@ -27,6 +27,12 @@
 
 Топ-10 связок на главной, разбивка по тирам Balanced: **A** ≥ 85 · **B** 70–84 · **C** 50–69 · **D** < 50. Внутри тира различия не интерпретируются (один прогон на связку); при равном тире выше та, у которой меньше итераций. Полная таблица — [results/leaderboard.md](results/leaderboard.md).
 
+### Тир A
+
+| Связка | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| Claude Code · Claude Sonnet 5.5 High | 85.0 | 85.5 | **85.2** | 1 | 36 мин | 56% 5ч · Pro ($20) | [verdict](submissions/claude-code/claude-sonnet-5-5-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-claude-sonnet-5-5-high) |
+
 ### Тир B
 
 | Связка | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |

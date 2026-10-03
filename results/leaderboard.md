@@ -4,6 +4,12 @@
 
 Топ-10 на [главной](../README.md#результаты). Здесь — все опубликованные прогоны. Разбор каждого прогона с баллами по критериям и скриншотами — на сайте: [bxmax.ru/bitrix-ai/challenge](https://bxmax.ru/bitrix-ai/challenge).
 
+## Тир A · ≥ 85
+
+| Связка | Визуал | Бэкенд | Balanced | Итерации | Время, мин | Токены in/out | Расход | Вердикт | Разбор на сайте |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
+| Claude Code · Claude Sonnet 5.5 High | 85.0 | 85.5 | 85.2 | 1 | 36 | 300 / 2 600 | 56% 5ч · Pro ($20) | [verdict](../submissions/claude-code/claude-sonnet-5-5-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-claude-sonnet-5-5-high) |
+
 ## Тир B · 70–84
 
 | Связка | Визуал | Бэкенд | Balanced | Итерации | Время, мин | Токены in/out | Расход | Вердикт | Разбор на сайте |

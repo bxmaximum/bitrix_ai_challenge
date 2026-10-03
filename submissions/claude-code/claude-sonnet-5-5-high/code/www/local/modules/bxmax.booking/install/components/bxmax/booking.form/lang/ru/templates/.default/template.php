@@ -1,0 +1,36 @@
+<?php
+
+$MESS['BXMAX_BK_EYEBROW'] = 'Онлайн-запись';
+$MESS['BXMAX_BK_LEAD'] = 'Выберите услугу, мастера и удобный час. Свободные места обновляются на лету — занятое время сразу недоступно.';
+$MESS['BXMAX_BK_STEP_SERVICE'] = 'Услуга';
+$MESS['BXMAX_BK_STEP_MASTER'] = 'Мастер';
+$MESS['BXMAX_BK_STEP_SLOT'] = 'Дата и время';
+$MESS['BXMAX_BK_STEP_CONTACTS'] = 'Ваши контакты';
+$MESS['BXMAX_BK_MIN'] = 'мин';
+$MESS['BXMAX_BK_PREV_WEEK'] = 'Предыдущая неделя';
+$MESS['BXMAX_BK_NEXT_WEEK'] = 'Следующая неделя';
+$MESS['BXMAX_BK_NAME'] = 'Ваше имя';
+$MESS['BXMAX_BK_NAME_PH'] = 'Как к вам обращаться';
+$MESS['BXMAX_BK_PHONE'] = 'Телефон';
+$MESS['BXMAX_BK_CONSENT'] = 'Я согласна(ен) на обработку персональных данных и принимаю условия <a href="#privacy" class="bk__link">политики конфиденциальности</a>';
+$MESS['BXMAX_BK_SUBMIT'] = 'Записаться';
+$MESS['BXMAX_BK_SENDING'] = 'Отправляем…';
+$MESS['BXMAX_BK_LOADING'] = 'Загружаем расписание…';
+$MESS['BXMAX_BK_NO_SLOTS'] = 'На эту неделю расписание ещё не опубликовано.';
+$MESS['BXMAX_BK_NO_DAY'] = 'нет приёма';
+$MESS['BXMAX_BK_TAKEN'] = 'занято';
+$MESS['BXMAX_BK_SELECTED'] = 'Вы выбрали';
+$MESS['BXMAX_BK_WEEK_FREE'] = 'свободно';
+$MESS['BXMAX_BK_ERR_SERVICE'] = 'Выберите услугу';
+$MESS['BXMAX_BK_ERR_MASTER'] = 'Выберите мастера';
+$MESS['BXMAX_BK_ERR_SLOT'] = 'Выберите свободное время';
+$MESS['BXMAX_BK_ERR_NAME'] = 'Укажите имя — от 2 символов';
+$MESS['BXMAX_BK_ERR_PHONE'] = 'Укажите телефон в формате +7 900 000-00-00';
+$MESS['BXMAX_BK_ERR_CONSENT'] = 'Нужно согласие на обработку персональных данных';
+$MESS['BXMAX_BK_ERR_NETWORK'] = 'Не удалось связаться с сервером. Проверьте соединение и попробуйте ещё раз.';
+$MESS['BXMAX_BK_ERR_SLOT_TAKEN'] = 'Это время только что заняли. Выберите другое — расписание обновлено.';
+$MESS['BXMAX_BK_ERR_GENERIC'] = 'Не получилось отправить заявку. Попробуйте ещё раз или позвоните нам.';
+$MESS['BXMAX_BK_OK_EYEBROW'] = 'Заявка принята';
+$MESS['BXMAX_BK_OK_TITLE'] = 'Вы записаны! Ждём вас в студии';
+$MESS['BXMAX_BK_OK_TEXT'] = 'Мы позвоним накануне, чтобы подтвердить визит. Если планы изменятся — просто сообщите нам.';
+$MESS['BXMAX_BK_AGAIN'] = 'Записаться ещё раз';
