@@ -1,0 +1,17 @@
+app: "deepseek-harness"
+model_snapshot: "DeepSeek V4.1 Flash High"
+run_date: "2026-10-06"
+bitrix_kernel: "26.800.0"
+task_version: "6c7e423"
+skills_version: "5a18047"
+iterations: 1
+duration_min: 56
+tokens_in: 208516
+tokens_out: 290501
+cache_read: 81772288
+cache_write: 0
+cost_kind: "api_usd"
+cost_value: 0.5
+cost_plan: ""
+published: true
+note: ""
