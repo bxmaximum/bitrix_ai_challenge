@@ -1,0 +1,1770 @@
+/*==================================================================
+ * Лендинг студии маникюра «Лак&Точка»
+ * Визуальный язык и пропорции: Aesthetic Lab (https://houstonaestheticlab.com/)
+ *==================================================================*/
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 15px;
+    line-height: 20px;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 0.3s ease, color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+p {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+
+/* Доступная ссылка быстрого перехода к записи */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 12px;
+    z-index: 9999;
+    background: #000;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.skip-link:focus {
+    left: 16px;
+    outline: 2px solid #D9BDA3;
+    outline-offset: 2px;
+}
+
+/* Контейнер и сетка */
+.container {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-end {
+    text-align: right;
+}
+
+.color-fff {
+    color: #ffffff;
+}
+
+.bg-F4F0EC {
+    background-color: #F4F0EC;
+}
+
+.bg-FEFAF6 {
+    background-color: #FEFAF6;
+}
+
+/* Типографика референса */
+.main-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 64px;
+    line-height: 85px;
+    font-weight: 400;
+    letter-spacing: 1.17px;
+    margin: 0 0 50px;
+}
+
+.main-title h1,
+.main-title h2,
+.main-title h3,
+.main-title h4 {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    margin: 0;
+}
+
+.service-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    line-height: 43px;
+    font-weight: 400;
+    letter-spacing: 1.17px;
+}
+
+.service-title h3 {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    margin: 0;
+}
+
+.common-detail {
+    font-size: 15px;
+    line-height: 30px;
+    font-weight: 400;
+}
+
+/* Пословная анимация заголовков (.banner-split-text и .split-text) */
+.banner-split-text .word-unit,
+.split-text .word-unit {
+    display: inline-block;
+    will-change: transform, opacity;
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.65s ease;
+}
+
+.banner-split-text.is-ready .word-unit,
+.split-text.is-inview .word-unit {
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) scale(1, 1) !important;
+}
+
+/* Вращающиеся круговые типографические штампы (.circular-title) */
+.circular-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    line-height: 38px;
+    position: absolute;
+    margin: 0 auto;
+    width: 214px;
+    height: 214px;
+    color: #D9BDA3;
+    text-align: center;
+    animation: spinZ 20s linear infinite;
+    border-radius: 50%;
+    pointer-events: none;
+    user-select: none;
+}
+
+.circular-title span {
+    position: absolute;
+    display: inline-block;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+@keyframes spinZ {
+    0% {
+        transform: rotateZ(-360deg);
+    }
+    100% {
+        transform: rotateZ(0deg);
+    }
+}
+
+/* Кнопки (.btn-black и .btn-border) */
+.btn {
+    display: inline-block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 19px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, opacity 0.3s ease;
+    text-align: center;
+}
+
+.btn-black {
+    color: #ffffff;
+    border: 1px solid #000000;
+    background-color: #000000;
+    padding: 17px 28px 15px 28px;
+    box-shadow: 1px 2px 0px rgba(0, 0, 0, 0.02);
+    border-radius: 30px;
+}
+
+.btn-black:hover,
+.btn-black:focus-visible {
+    background-color: transparent;
+    color: #000000;
+    border-color: #000000;
+}
+
+.banner-content .btn-black:hover,
+.banner-content .btn-black:focus-visible {
+    background-color: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+}
+
+.btn:focus-visible,
+.btn-border:focus-visible {
+    outline: 2px solid #D9BDA3;
+    outline-offset: 4px;
+}
+
+.btn-border {
+    position: relative;
+    display: inline-block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    padding: 4px 0;
+    background: transparent;
+    border: none;
+    color: #000000;
+    cursor: pointer;
+}
+
+.btn-border::before {
+    content: "";
+    border-bottom: 1px solid #000000;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transition: transform 0.4s ease;
+}
+
+.btn-border:hover {
+    opacity: 0.6;
+}
+
+/*==================================================================
+ * Header (.header)
+ *==================================================================*/
+.header {
+    padding: 30px 0 27px;
+    position: relative;
+    z-index: 99;
+    background-color: #ffffff;
+}
+
+.header .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header .navbar-brand {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header .navbar-toggler {
+    display: none;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    z-index: 102;
+}
+
+.header .navbar-toggler span {
+    background-color: #000000;
+    width: 27px;
+    height: 1px;
+    margin-bottom: 8px;
+    display: block;
+    position: relative;
+    transition: 0.5s ease;
+}
+
+.header .navbar-toggler span:last-child {
+    margin-bottom: 0;
+}
+
+.header .navbar-nav {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.header .navbar-nav .nav-item {
+    padding: 0 15px;
+}
+
+.header .navbar-nav .nav-item:first-child {
+    padding-left: 0;
+}
+
+.header .navbar-nav .nav-item:last-child {
+    padding-right: 0;
+}
+
+.header .navbar-nav .nav-item .nav-link {
+    font-size: 15px;
+    line-height: 19px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: #000000;
+    padding: 0;
+    position: relative;
+}
+
+.header .navbar-nav .nav-item .nav-link::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: calc(100% + 2px);
+    width: 100%;
+    height: 1px;
+    background-color: #000000;
+    will-change: transform;
+    transform-origin: 100% 50%;
+    transition: transform 0.7s cubic-bezier(0.42, 0, 0, 1);
+    transform: translateZ(0) scaleX(0);
+}
+
+.header .navbar-nav .nav-item .nav-link:hover::before,
+.header .navbar-nav .nav-item .nav-link:focus-visible::before,
+.header .navbar-nav .nav-item .nav-link.active::before {
+    transform-origin: 0 50%;
+    transform: translateZ(0) scaleX(1);
+}
+
+/*==================================================================
+ * Hero (.banner-wrp)
+ *==================================================================*/
+.banner-wrp {
+    position: relative;
+}
+
+.banner-img {
+    position: relative;
+    height: 1320px;
+}
+
+.banner-img::before {
+    content: "";
+    background: linear-gradient(
+        180deg,
+        rgba(18, 14, 12, 0.48) 0%,
+        rgba(18, 14, 12, 0.32) 48%,
+        rgba(18, 14, 12, 0.28) 100%
+    );
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    border-radius: 0% 0% 50% 50% / 0% 0% 42% 42%;
+}
+
+.banner-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    border-radius: 0% 0% 50% 50% / 0% 0% 42% 42%;
+}
+
+.banner-section {
+    position: absolute;
+    top: 148px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+}
+
+.banner-inner {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.banner-content .main-title {
+    margin: 0 0 38px;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
+}
+
+.banner-content .common-detail {
+    max-width: 680px;
+    margin: 0 0 46px;
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 16px;
+    line-height: 30px;
+}
+
+/*==================================================================
+ * Отзывы и о студии (.testimonial-wrp)
+ *==================================================================*/
+.testimonial-wrp {
+    margin: -540px 0 0;
+    padding: 0 0 100px;
+    position: relative;
+    z-index: 5;
+}
+
+.testimonial-section {
+    position: relative;
+    text-align: center;
+    z-index: 9;
+    max-width: 1060px;
+    margin: 0 auto;
+}
+
+.testimonial-section::before {
+    content: "";
+    border: 1px solid #000000;
+    position: absolute;
+    left: 50%;
+    top: 390px;
+    bottom: 0;
+    max-width: 916px;
+    width: 100%;
+    border-radius: 50% 50% 50% 50% / 42% 42% 0% 0%;
+    transform: translate(-50%, 0);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.testimonial-section .main-title {
+    margin: 0 0 70px;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.22);
+}
+
+.testimonial-section .circular-text {
+    left: -425px;
+    right: 0;
+    top: 140px;
+    color: #ffffff;
+}
+
+.testimonial-slider {
+    position: relative;
+    padding: 0 0 70px;
+}
+
+.testimonial-item {
+    display: none;
+    animation: fadeSlide 0.55s ease;
+}
+
+.testimonial-item.is-active {
+    display: block;
+}
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.testimonial-item .testimonial-img {
+    margin: 0 0 64px;
+}
+
+.testimonial-img img {
+    max-width: 490px;
+    width: 100%;
+    height: 600px;
+    margin: 0 auto;
+    object-fit: cover;
+    border-radius: 50% 50% 50% 50% / 42% 42% 0% 0%;
+}
+
+.tetimonial-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.tetimonial-content .common-detail {
+    letter-spacing: 0.8px;
+}
+
+.tetimonial-content .common-detail p {
+    padding: 0 0 24px;
+}
+
+.testimonial-author {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    color: #000000;
+}
+
+.testimonial-service-tag {
+    display: block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #7c7065;
+    margin-top: 4px;
+}
+
+.slider-controls {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+}
+
+.slick-arrow {
+    background-color: transparent;
+    padding: 6px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slick-arrow svg {
+    width: 19px;
+    height: 37px;
+}
+
+.slick-arrow svg path {
+    transition: stroke 0.4s ease;
+}
+
+.slick-arrow:hover svg path,
+.slick-arrow:focus-visible svg path {
+    stroke: #D9BDA3;
+}
+
+.slick-arrow:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 4px;
+}
+
+.slider-counter {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: #000000;
+    min-width: 56px;
+}
+
+/* Манифест студии внутри секции */
+.studio-manifesto {
+    max-width: 780px;
+    margin: 56px auto 0;
+    padding: 36px 40px 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    text-align: left;
+}
+
+.studio-manifesto__item-num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    line-height: 34px;
+    color: #000;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.studio-manifesto__item-text {
+    font-size: 13px;
+    line-height: 20px;
+    color: #3f3a35;
+}
+
+/*==================================================================
+ * Услуги с ценами (.services-wrp + .services-list-wrp)
+ *==================================================================*/
+.services-wrp {
+    padding: 190px 0 110px;
+    position: relative;
+    z-index: 9;
+    overflow: hidden;
+    background-color: #FEFAF6;
+    border-radius: 50% 50% 0 0 / 260px 260px 0 0;
+}
+
+.services-section {
+    margin: 0 13px;
+    position: relative;
+    z-index: 9;
+}
+
+.services-section::before {
+    content: "";
+    border-right: 1px solid #000000;
+    max-width: 916px;
+    width: 100%;
+    position: absolute;
+    top: -400px;
+    bottom: -400px;
+    left: 50%;
+    z-index: -1;
+    transform: translate(-50%, 0);
+    pointer-events: none;
+}
+
+.services-showcase-grid {
+    display: grid;
+    grid-template-columns: 3fr 6fr 3fr;
+    gap: 30px;
+    align-items: end;
+    padding: 0 0 24px;
+}
+
+.service-block {
+    position: relative;
+    z-index: 9;
+}
+
+.services-section .top-left-border {
+    margin: 0 13px 0 0;
+}
+
+.services-section .bottom-right-border {
+    margin: 0 28px 110px;
+}
+
+.services-section .top-right-border {
+    margin: 0 0 140px 13px;
+}
+
+.service-block .service-img {
+    margin: 0 0 20px;
+}
+
+.service-block .service-img img {
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.top-left-border .service-img img {
+    height: 362px;
+    border-radius: 120px 0 0 0;
+}
+
+.bottom-right-border .service-img img {
+    height: 540px;
+    border-radius: 0 0 180px 0;
+}
+
+.top-right-border .service-img img {
+    height: 362px;
+    border-radius: 0 120px 0 0;
+}
+
+.service-block .common-detail {
+    letter-spacing: 1px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    line-height: 28px;
+}
+
+.service-block .circular-title {
+    position: absolute;
+    right: -40px;
+    bottom: 24px;
+    color: #ffffff;
+}
+
+/* Полный прайс-каталог из инфоблока services (.services-list-wrp) */
+.services-list-wrp {
+    position: relative;
+    padding: 40px 0 90px;
+    background-color: #FEFAF6;
+    overflow: hidden;
+    overflow: clip;
+}
+
+.services-list-wrp::before {
+    content: "";
+    background-color: #F9F5F1;
+    width: min(1248px, 100%);
+    height: min(1248px, 100%);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 0;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.services-list-main {
+    position: relative;
+    z-index: 2;
+    max-width: 1060px;
+    margin: 0 auto;
+}
+
+.services-list-section {
+    margin: 0 18px;
+}
+
+.services-list-block {
+    padding: 44px 0;
+    border-bottom: 1px solid #000000;
+    position: relative;
+}
+
+.services-list-block:first-child {
+    border-top: 1px solid #000000;
+}
+
+.services-list-block__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    margin: 0 0 18px;
+}
+
+.services-list-block .service-title {
+    margin: 0;
+}
+
+.services-list-block__price {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    line-height: 36px;
+    white-space: nowrap;
+}
+
+.services-list-block .service-content {
+    max-width: 680px;
+}
+
+.service-list ul {
+    padding: 24px 0 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.service-list ul li {
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 500;
+    list-style-type: none;
+    background-color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 22px;
+    border: 1px solid #000000;
+    border-radius: 86.5px;
+}
+
+.service-list ul li.service-list__action-item {
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+
+.service-list__book-btn {
+    appearance: none;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 86.5px;
+    padding: 12px 22px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.service-list__book-btn:hover,
+.service-list__book-btn:focus-visible {
+    background-color: transparent;
+    color: #000000;
+}
+
+.service-list__book-btn:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 3px;
+}
+
+.service-list-img {
+    max-width: 260px;
+    width: 100%;
+    height: 330px;
+    position: absolute;
+    right: 90px;
+    top: 12px;
+    z-index: 9;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+    transition: opacity 0.35s ease, transform 0.25s ease-out;
+}
+
+.services-list-block:hover .service-list-img {
+    opacity: 1;
+}
+
+.service-list-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 120px 120px 0 0;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+}
+
+.services-list-main .book-visit {
+    padding: 64px 0 0;
+    text-align: center;
+}
+
+/*==================================================================
+ * Мастера (.meet-team-wrp)
+ *==================================================================*/
+.meet-team-wrp {
+    overflow: hidden;
+    padding: 130px 0 132px;
+    background-color: #F9F5F1;
+    border-radius: 0 0 50% 50% / 0 0 260px 260px;
+    position: relative;
+}
+
+.meet-team-section {
+    position: relative;
+    z-index: 9;
+}
+
+.meet-team-section::before {
+    content: "";
+    border-left: 1px solid #000000;
+    border-right: 1px solid #000000;
+    position: absolute;
+    top: -300px;
+    left: 50%;
+    max-width: 916px;
+    width: 100%;
+    height: 1500px;
+    z-index: -1;
+    transform: translate(-50%, 0);
+    pointer-events: none;
+}
+
+.meet-team-section .meet-team-title {
+    max-width: 678px;
+    width: 100%;
+    margin: 0 auto 100px;
+    text-align: center;
+}
+
+.meet-team-row {
+    position: relative;
+    margin: 0 17px;
+}
+
+.meet-team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 44px;
+    align-items: start;
+}
+
+.meet-team-block {
+    position: relative;
+}
+
+.meet-team-img {
+    margin: 0 0 22px;
+    overflow: hidden;
+}
+
+.meet-team-img img {
+    width: 100%;
+    height: 310px;
+    object-fit: cover;
+    object-position: center top;
+    transition: transform 0.6s ease;
+}
+
+.meet-team-block:hover .meet-team-img img {
+    transform: scale(1.04);
+}
+
+.sabrina-block .meet-team-img img {
+    border-radius: 130px 0 0 0;
+}
+
+.vanessa-block {
+    margin: 130px 0 0;
+    position: relative;
+    z-index: 9;
+}
+
+.vanessa-block .meet-team-img img {
+    border-radius: 130px 130px 130px 0;
+}
+
+.kariana-block {
+    margin: 56px 0 0;
+}
+
+.kariana-block .meet-team-img img {
+    border-radius: 0 130px 0 0;
+}
+
+.kristie-block .meet-team-img img {
+    border-radius: 0 130px 0 130px;
+}
+
+.meet-team-card-body {
+    text-align: left;
+}
+
+.meet-team-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.meet-team-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 24px;
+    line-height: 30px;
+    margin: 0;
+}
+
+.meet-team-exp {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #7c7065;
+}
+
+.meet-team-spec {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.meet-team-bio {
+    font-size: 13px;
+    line-height: 21px;
+    color: #46403a;
+    margin-bottom: 14px;
+}
+
+.meet-team-section .circular-text3 {
+    top: -10px;
+    left: 200px;
+    color: #D9BDA3;
+}
+
+.meet-team-section .view-all {
+    padding: 96px 0 0;
+    text-align: center;
+}
+
+/*==================================================================
+ * Галерея работ (.our-surgeons-wrp + медальоны работ)
+ *==================================================================*/
+.surgeon-main {
+    position: relative;
+    overflow: hidden;
+}
+
+.surgeon-main::before {
+    content: "";
+    background-color: #F4F0EC;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 440px;
+    bottom: 0;
+    z-index: -1;
+    border-radius: 50% 50% 0 0 / 260px 260px 0 0;
+    pointer-events: none;
+}
+
+.our-surgeons-wrp {
+    padding: 140px 0 90px;
+    overflow: hidden;
+}
+
+.our-surgeons-section > .main-title {
+    max-width: 903px;
+    margin: 0 auto 76px;
+}
+
+.our-surgeons-row {
+    position: relative;
+    margin: 0 80px;
+    padding-top: 140px;
+}
+
+.al-logo {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    line-height: 1;
+    width: 96px;
+    height: 96px;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    border: 1px solid #D9BDA3;
+    border-radius: 50%;
+    transform: translate(-50%, 0);
+    z-index: 3;
+}
+
+.al-logo h4 {
+    margin: 0;
+    font-weight: 400;
+    font-size: 26px;
+}
+
+.al-logo::after,
+.al-logo::before {
+    content: "";
+    background-color: #000000;
+    width: 3px;
+    height: 3px;
+    position: absolute;
+    top: 50%;
+    border-radius: 50%;
+    transform: translate(0, -50%);
+}
+
+.al-logo::after {
+    left: 11px;
+}
+
+.al-logo::before {
+    right: 11px;
+}
+
+.our-surgeons-row .dot-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.our-surgeons-row .dot-left::before {
+    content: "";
+    width: 3000px;
+    background-color: #000000;
+    position: absolute;
+    top: 68px;
+    right: 100%;
+    height: 1px;
+}
+
+.our-surgeons-row .dot-left::after {
+    content: "";
+    width: 5px;
+    height: 5px;
+    background-color: #000000;
+    position: absolute;
+    right: 0;
+    top: 66px;
+    border-radius: 50%;
+}
+
+.our-surgeons-row .dot-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.our-surgeons-row .dot-right::before {
+    content: "";
+    width: 3000px;
+    background-color: #000000;
+    position: absolute;
+    top: 68px;
+    left: 100%;
+    height: 1px;
+}
+
+.our-surgeons-row .dot-right::after {
+    content: "";
+    width: 5px;
+    height: 5px;
+    background-color: #000000;
+    position: absolute;
+    left: 0;
+    top: 66px;
+    border-radius: 50%;
+}
+
+/* Сетка 6 работ студии в овальных медальонах .our-surgeons-block */
+.gallery-medallions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px;
+    align-items: start;
+}
+
+.our-surgeons-block {
+    max-width: 310px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 28px 24px 32px;
+    text-align: center;
+    border: 1px solid #D9BDA3;
+    border-radius: 340px;
+    background-color: rgba(255, 255, 255, 0.72);
+    transition: transform 0.45s ease, background-color 0.45s ease, border-color 0.45s ease;
+}
+
+.our-surgeons-block:nth-child(3n + 2) {
+    margin-top: 48px;
+}
+
+.our-surgeons-block:hover {
+    transform: translateY(-6px);
+    background-color: #ffffff;
+    border-color: #000000;
+}
+
+.our-surgeons-block .surgeon-img {
+    margin: 0 0 24px;
+}
+
+.our-surgeons-block .surgeon-img img {
+    width: 240px;
+    height: 240px;
+    margin: 0 auto;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.gallery-work-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    line-height: 28px;
+    margin: 0 0 8px;
+}
+
+.gallery-work-meta {
+    font-size: 13px;
+    line-height: 19px;
+    color: #524b44;
+    margin-bottom: 14px;
+}
+
+/*==================================================================
+ * Онлайн-запись (.contact-wrp)
+ *==================================================================*/
+.contact-wrp {
+    padding: 110px 0 90px;
+    position: relative;
+    overflow: hidden;
+    overflow: clip;
+    background-color: #ffffff;
+}
+
+.contact-wrp::before {
+    content: "";
+    background-color: #FEFAF6;
+    width: min(1280px, 100%);
+    height: min(1280px, 100%);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.contact-main {
+    position: relative;
+    z-index: 2;
+}
+
+.contact-main > .main-title {
+    margin: 0 0 24px;
+}
+
+.contact-subtitle {
+    max-width: 620px;
+    margin: 0 auto 64px;
+    text-align: center;
+    color: #3f3a35;
+}
+
+.contact-main .circular-title {
+    color: #D9BDA3;
+    right: 12px;
+    top: -40px;
+    z-index: 1;
+}
+
+/*==================================================================
+ * Контакты (.get-in-touch-wrp)
+ *==================================================================*/
+.get-in-touch-wrp {
+    padding: 110px 0 80px;
+    position: relative;
+    overflow: hidden;
+    background-color: #F4F0EC;
+    border-radius: 50% 50% 0 0 / 180px 180px 0 0;
+}
+
+.get-in-touch-grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 72px;
+    align-items: center;
+}
+
+.get-in-touch-block .main-title {
+    margin: 0 0 50px;
+}
+
+.get-in-touch-detail {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px 0;
+    position: relative;
+}
+
+.get-in-touch-detail::before {
+    content: "";
+    background-color: #000000;
+    width: 3000px;
+    height: 1px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.get-in-touch-content .get-in-touch-detail:last-child::before {
+    display: none;
+}
+
+.get-in-touch-detail .common-detail {
+    max-width: 260px;
+    line-height: 22px;
+}
+
+.get-in-touch-collage {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    position: relative;
+}
+
+.get-in-touch-img {
+    position: relative;
+    z-index: 9;
+    text-align: center;
+}
+
+.get-in-touch-img .contact-img {
+    margin: 0 0 14px;
+}
+
+.get-in-touch-img .contact-img img {
+    width: 156px;
+    height: 156px;
+    margin: 0 auto;
+    object-fit: cover;
+}
+
+.contact-one {
+    margin: 40px 0 10px;
+}
+
+.contact-one .contact-img img {
+    border-radius: 52px 0 0 0;
+}
+
+.contact-two .contact-img img {
+    border-radius: 0 78px 0 78px;
+}
+
+.contact-three .contact-img img {
+    border-radius: 130px 130px 130px 0;
+}
+
+.contact-four .contact-img img {
+    border-radius: 0 52px 52px 52px;
+}
+
+.get-in-touch-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+}
+
+/*==================================================================
+ * Footer (.footer)
+ *==================================================================*/
+.footer {
+    padding: 60px 0 0;
+    position: relative;
+    background-color: #F4F0EC;
+}
+
+.footer-top {
+    padding: 0 0 35px;
+    border-bottom: 1px solid #000000;
+}
+
+.footer-bottom {
+    padding: 25px 0 28px;
+}
+
+.footer-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+}
+
+.footer-logo {
+    display: inline-block;
+    text-align: center;
+}
+
+.copyright p {
+    font-size: 13px;
+    line-height: 24px;
+    margin: 0;
+    text-align: center;
+}
+
+/*==================================================================
+ * Адаптив: 1200 / 991 / 768 / 360
+ *==================================================================*/
+@media (max-width: 1199px) {
+    .main-title {
+        font-size: 48px;
+        line-height: 62px;
+        margin: 0 0 34px;
+    }
+
+    .banner-img {
+        height: 980px;
+    }
+
+    .testimonial-wrp {
+        margin: -400px 0 0;
+    }
+
+    .meet-team-grid {
+        gap: 24px;
+    }
+
+    .meet-team-img img {
+        height: 250px;
+    }
+}
+
+@media (max-width: 991px) {
+    .header {
+        padding: 22px 0;
+    }
+
+    .header .navbar-toggler {
+        display: block;
+    }
+
+    .header .navbar-toggler.open span:first-child {
+        top: 4px;
+        transform: rotate(225deg);
+    }
+
+    .header .navbar-toggler.open span:nth-child(2) {
+        display: none;
+    }
+
+    .header .navbar-toggler.open span:last-child {
+        top: -5px;
+        transform: rotate(-225deg);
+    }
+
+    .header .navbar-collapse {
+        position: fixed;
+        background-color: #ffffff;
+        padding: 96px 40px 40px;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        max-width: 320px;
+        width: 100%;
+        height: 100vh;
+        overflow-y: auto;
+        transform: translateX(100%);
+        visibility: hidden;
+        pointer-events: none;
+        transition: transform 0.45s ease, visibility 0.45s ease;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
+        z-index: 101;
+    }
+
+    .header .navbar-collapse.show {
+        transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .header .navbar-nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header .navbar-nav .nav-item {
+        padding: 12px 0;
+    }
+
+    .main-title {
+        font-size: 38px;
+        line-height: 50px;
+    }
+
+    .banner-img {
+        height: 820px;
+    }
+
+    .banner-section {
+        top: 100px;
+    }
+
+    .testimonial-wrp {
+        margin: -340px 0 0;
+        padding: 0 0 70px;
+    }
+
+    .testimonial-img img {
+        max-width: 340px;
+        height: 430px;
+    }
+
+    .testimonial-section::before {
+        max-width: 660px;
+        top: 250px;
+    }
+
+    .services-showcase-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .services-section .top-left-border,
+    .services-section .bottom-right-border,
+    .services-section .top-right-border {
+        margin: 0;
+    }
+
+    .top-left-border .service-img img,
+    .bottom-right-border .service-img img,
+    .top-right-border .service-img img {
+        height: 300px;
+    }
+
+    .service-list-img {
+        display: none;
+    }
+
+    .meet-team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 32px;
+    }
+
+    .vanessa-block,
+    .kariana-block {
+        margin: 0;
+    }
+
+    .gallery-medallions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .our-surgeons-block:nth-child(3n + 2) {
+        margin-top: 0;
+    }
+
+    .get-in-touch-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+}
+
+@media (max-width: 767px) {
+    .container {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .main-title {
+        font-size: 32px;
+        line-height: 42px;
+        margin: 0 0 24px;
+    }
+
+    .service-title {
+        font-size: 24px;
+        line-height: 32px;
+    }
+
+    .banner-img {
+        height: 700px;
+    }
+
+    .banner-img img,
+    .banner-img::before {
+        border-radius: 0 0 180px 180px;
+    }
+
+    .banner-section {
+        top: 72px;
+    }
+
+    .banner-content {
+        text-align: center;
+    }
+
+    .banner-content .main-title {
+        font-size: 30px;
+        line-height: 39px;
+    }
+
+    .banner-content .common-detail {
+        font-size: 15px;
+        line-height: 24px;
+        margin: 0 auto 30px;
+    }
+
+    .testimonial-wrp {
+        margin: -210px 0 0;
+        padding: 0 0 56px;
+    }
+
+    .testimonial-img img {
+        max-width: 230px;
+        height: 290px;
+    }
+
+    .testimonial-item .testimonial-img {
+        margin: 0 0 36px;
+    }
+
+    .testimonial-section::before {
+        max-width: 100%;
+        top: 180px;
+        border-radius: 180px 180px 0 0;
+    }
+
+    .circular-title {
+        display: none;
+    }
+
+    .studio-manifesto {
+        grid-template-columns: 1fr;
+        padding: 24px 16px 0;
+        gap: 18px;
+    }
+
+    .services-wrp {
+        padding: 72px 0 48px;
+        border-radius: 180px 180px 0 0;
+    }
+
+    .services-section {
+        margin: 0;
+    }
+
+    .services-section::before {
+        display: none;
+    }
+
+    .services-showcase-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .services-list-section {
+        margin: 0;
+    }
+
+    .services-list-block {
+        padding: 26px 0;
+    }
+
+    .services-list-block__head {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .services-list-block__price {
+        font-size: 22px;
+        line-height: 28px;
+    }
+
+    .meet-team-wrp {
+        padding: 64px 0 72px;
+        border-radius: 0 0 180px 180px;
+    }
+
+    .meet-team-section::before {
+        display: none;
+    }
+
+    .meet-team-section .meet-team-title {
+        margin: 0 auto 44px;
+    }
+
+    .meet-team-row {
+        margin: 0;
+    }
+
+    .meet-team-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+
+    .meet-team-img img {
+        height: 320px;
+    }
+
+    .our-surgeons-wrp {
+        padding: 64px 0 48px;
+    }
+
+    .our-surgeons-row {
+        margin: 0;
+        padding-top: 0;
+    }
+
+    .al-logo {
+        position: relative;
+        top: 0;
+        left: 0;
+        transform: none;
+        margin: 0 auto 36px;
+    }
+
+    .our-surgeons-row .dot-left,
+    .our-surgeons-row .dot-right {
+        display: none;
+    }
+
+    .gallery-medallions-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .contact-wrp {
+        padding: 64px 0 56px;
+    }
+
+    .contact-subtitle {
+        margin-bottom: 36px;
+    }
+
+    .get-in-touch-wrp {
+        padding: 64px 0 44px;
+        border-radius: 140px 140px 0 0;
+    }
+
+    .get-in-touch-detail {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 20px 0;
+    }
+
+    .get-in-touch-collage {
+        gap: 16px;
+    }
+
+    .contact-one {
+        margin: 0;
+    }
+
+    .get-in-touch-img .contact-img img {
+        width: 124px;
+        height: 124px;
+    }
+
+    .footer-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .footer .text-end {
+        text-align: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .circular-title {
+        animation: none !important;
+    }
+
+    .char-unit,
+    .split-text .word-unit,
+    .testimonial-item,
+    .btn,
+    .header .navbar-nav .nav-item .nav-link::before,
+    .meet-team-img img,
+    .our-surgeons-block {
+        transition: none !important;
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

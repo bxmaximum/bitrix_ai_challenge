@@ -1,0 +1,17 @@
+app: "cursor"
+model_snapshot: "Gemini 4 Argon High"
+run_date: "2026-10-13"
+bitrix_kernel: "26.800.0"
+task_version: "6c7e423"
+skills_version: "70f487d"
+iterations: 1
+duration_min: 32
+tokens_in: 1840173
+tokens_out: 162776
+cache_read: 16011485
+cache_write: 0
+cost_kind: "limit_monthly"
+cost_value: 16
+cost_plan: "Pro ($20)"
+published: true
+note: ""

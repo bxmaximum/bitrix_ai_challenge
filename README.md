@@ -44,6 +44,7 @@
 
 | Связка | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| Cursor · Gemini 4 Argon High | 67.5 | 71.5 | **69.5** | 1 | 32 мин | 16% мес. · Pro ($20) | [verdict](submissions/cursor/gemini-4-argon-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/cursor-gemini-4-argon-high) |
 | Codex · GPT 5.6 Sol High | 71.5 | 65.5 | **68.4** | 1 | 63 мин | 64% 5ч · Plus ($20) | [verdict](submissions/codex/gpt-5-6-sol-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/codex-gpt-5-6-sol-high) |
 | DeepSeek Harness · DeepSeek V4.1 Flash High | 69.0 | 64.0 | **66.5** | 1 | 56 мин | $0.50 | [verdict](submissions/deepseek-harness/deepseek-v4-1-flash-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/deepseek-harness-deepseek-v4-1-flash-high) |
 | Codex · GPT 6 Astra High | 73.0 | 51.5 | **61.3** | 1 | 36 мин | 180% 5ч · Plus ($20) | [verdict](submissions/codex/gpt-6-astra-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/codex-gpt-6-astra-high) |

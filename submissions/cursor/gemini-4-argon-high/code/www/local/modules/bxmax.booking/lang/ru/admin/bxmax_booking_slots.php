@@ -1,0 +1,22 @@
+<?php
+
+$MESS['BXMAX_BOOKING_SLOTS_TITLE'] = 'Расписание слотов мастеров — Лак&Точка';
+$MESS['BXMAX_BOOKING_SLOT_COL_ID'] = 'ID';
+$MESS['BXMAX_BOOKING_SLOT_COL_MASTER'] = 'Мастер';
+$MESS['BXMAX_BOOKING_SLOT_COL_STARTS_AT'] = 'Начало';
+$MESS['BXMAX_BOOKING_SLOT_COL_ENDS_AT'] = 'Окончание';
+$MESS['BXMAX_BOOKING_SLOT_COL_STATUS'] = 'Статус на лендинге';
+$MESS['BXMAX_BOOKING_SLOT_COL_IS_CLOSED'] = 'Закрыт вручную';
+$MESS['BXMAX_BOOKING_SLOT_COL_BOOKING'] = 'Заявка';
+$MESS['BXMAX_BOOKING_SLOT_STATUS_FREE'] = 'Свободен';
+$MESS['BXMAX_BOOKING_SLOT_STATUS_TAKEN_ENTRY'] = 'Занят (заявка)';
+$MESS['BXMAX_BOOKING_SLOT_STATUS_TAKEN_CLOSED'] = 'Занят (закрыт админом)';
+$MESS['BXMAX_BOOKING_SLOT_ACT_CLOSE'] = 'Закрыть слот';
+$MESS['BXMAX_BOOKING_SLOT_ACT_OPEN'] = 'Открыть слот';
+$MESS['BXMAX_BOOKING_SLOT_FILTER_MASTER'] = 'Мастер';
+$MESS['BXMAX_BOOKING_SLOT_FILTER_DATE'] = 'Дата (ДД.ММ.ГГГГ или ГГГГ-ММ-ДД)';
+$MESS['BXMAX_BOOKING_SLOT_FILTER_STATUS'] = 'Статус';
+$MESS['BXMAX_BOOKING_SLOT_FILTER_ALL'] = '(все)';
+$MESS['BXMAX_BOOKING_SLOT_NAV_TITLE'] = 'Слоты';
+$MESS['BXMAX_BOOKING_SLOT_BTN_GENERATE'] = 'Догенерировать слоты (14 дней)';
+$MESS['BXMAX_BOOKING_SLOT_BTN_ENTRIES'] = 'Список заявок';

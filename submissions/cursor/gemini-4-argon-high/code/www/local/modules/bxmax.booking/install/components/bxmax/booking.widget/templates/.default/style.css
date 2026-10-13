@@ -1,0 +1,643 @@
+.bxmax-booking {
+    position: relative;
+    z-index: 2;
+    max-width: 1040px;
+    margin: 0 auto;
+}
+
+.bxmax-booking__step {
+    margin-bottom: 56px;
+}
+
+.bxmax-booking__step-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.14);
+    padding-bottom: 14px;
+}
+
+.bxmax-booking__step-header--schedule {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.bxmax-booking__step-title-group {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.bxmax-booking__step-num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    line-height: 1;
+    color: #9c7c5e;
+    font-style: italic;
+}
+
+.bxmax-booking__step-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin: 0;
+    color: #000;
+}
+
+/* Пилюли выбора услуги в языке .service-list референса */
+.bxmax-booking__services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.bxmax-booking__service-pill {
+    appearance: none;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #000;
+    border-radius: 86px;
+    padding: 13px 22px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    transition: background-color 0.35s ease, color 0.35s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bxmax-booking__service-pill:hover {
+    background-color: #F4F0EC;
+}
+
+.bxmax-booking__service-pill:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 3px;
+}
+
+.bxmax-booking__service-pill.is-selected,
+.bxmax-booking__service-pill[aria-selected="true"] {
+    background-color: #000;
+    color: #fff;
+}
+
+.bxmax-booking__service-pill-meta {
+    opacity: 0.72;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Карточки мастеров с фирменными асимметричными скруглениями референса */
+.bxmax-booking__masters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.bxmax-booking__master-card {
+    appearance: none;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.35s ease, background-color 0.35s ease, transform 0.35s ease;
+    color: #000;
+}
+
+.bxmax-booking__master-card:hover {
+    border-color: #000;
+    background-color: #FEFAF6;
+}
+
+.bxmax-booking__master-card:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 3px;
+}
+
+.bxmax-booking__master-card.is-selected,
+.bxmax-booking__master-card[aria-selected="true"] {
+    background-color: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.bxmax-booking__master-avatar {
+    display: block;
+    width: 100%;
+    height: 156px;
+    overflow: hidden;
+    background-color: #F4F0EC;
+}
+
+.bxmax-booking__master-card--shape-1 .bxmax-booking__master-avatar {
+    border-radius: 68px 0 0 0;
+}
+
+.bxmax-booking__master-card--shape-2 .bxmax-booking__master-avatar {
+    border-radius: 68px 68px 68px 0;
+}
+
+.bxmax-booking__master-card--shape-3 .bxmax-booking__master-avatar {
+    border-radius: 0 68px 0 0;
+}
+
+.bxmax-booking__master-card--shape-4 .bxmax-booking__master-avatar {
+    border-radius: 0 68px 0 68px;
+}
+
+.bxmax-booking__master-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.bxmax-booking__master-card:hover .bxmax-booking__master-avatar img {
+    transform: scale(1.04);
+}
+
+.bxmax-booking__master-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bxmax-booking__master-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    line-height: 24px;
+    font-weight: 400;
+}
+
+.bxmax-booking__master-spec {
+    font-size: 12px;
+    line-height: 16px;
+    opacity: 0.72;
+}
+
+/* Переключатель недель */
+.bxmax-booking__week-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.bxmax-booking__week-btn {
+    appearance: none;
+    background: transparent;
+    border: 1px solid #000;
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #000;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+}
+
+.bxmax-booking__week-btn svg {
+    width: 9px;
+    height: 16px;
+}
+
+.bxmax-booking__week-btn:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+.bxmax-booking__week-btn:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 3px;
+}
+
+.bxmax-booking__week-label {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    min-width: 170px;
+    text-align: center;
+    color: #000;
+}
+
+/* Легенда слотов */
+.bxmax-booking__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: #3d3834;
+}
+
+.bxmax-booking__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bxmax-booking__legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.bxmax-booking__legend-dot--free {
+    background: #fff;
+    border: 1px solid #000;
+}
+
+.bxmax-booking__legend-dot--selected {
+    background: #000;
+    border: 1px solid #000;
+}
+
+.bxmax-booking__legend-dot--taken {
+    background: #ebe5de;
+    border: 1px dashed #9e9489;
+}
+
+/* Сетка дней и слотов */
+.bxmax-booking__schedule {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 10px;
+    min-height: 220px;
+}
+
+.bxmax-booking__day-col {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bxmax-booking__day-head {
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    margin-bottom: 4px;
+}
+
+.bxmax-booking__day-weekday {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6e655c;
+}
+
+.bxmax-booking__day-date {
+    display: block;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 17px;
+    color: #000;
+    margin-top: 2px;
+}
+
+.bxmax-booking__slot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bxmax-booking__slot {
+    appearance: none;
+    width: 100%;
+    padding: 8px 6px;
+    border-radius: 20px;
+    border: 1px solid #000;
+    background-color: #fff;
+    color: #000;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.bxmax-booking__slot:hover:not([aria-disabled="true"]) {
+    background-color: #F4F0EC;
+}
+
+.bxmax-booking__slot:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+}
+
+.bxmax-booking__slot[aria-selected="true"] {
+    background-color: #000;
+    color: #fff;
+    border-color: #000;
+    font-weight: 600;
+}
+
+.bxmax-booking__slot[aria-disabled="true"] {
+    background-color: #f1ece6;
+    color: #8c8277;
+    border: 1px dashed #b8afa4;
+    text-decoration: line-through;
+    cursor: not-allowed;
+}
+
+.bxmax-booking__empty-day {
+    font-size: 12px;
+    color: #787067;
+    text-align: center;
+    padding: 18px 4px;
+}
+
+/* Выбранная сводка и поля ввода в стиле .contact-form референса */
+.bxmax-booking__summary-bar {
+    background-color: #F4F0EC;
+    border-left: 2px solid #000;
+    padding: 14px 20px;
+    margin-bottom: 36px;
+    font-size: 14px;
+    line-height: 22px;
+    color: #000;
+}
+
+.bxmax-booking__fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 48px;
+    margin-bottom: 32px;
+}
+
+.bxmax-booking__field {
+    position: relative;
+    padding-top: 22px;
+}
+
+.bxmax-booking__input {
+    width: 100%;
+    font-family: 'Manrope', sans-serif;
+    font-size: 18px;
+    line-height: 28px;
+    letter-spacing: 0.5px;
+    color: #000;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid #000;
+    background-color: transparent;
+    border-radius: 0;
+    transition: border-color 0.3s ease;
+}
+
+.bxmax-booking__input:focus {
+    outline: none;
+    border-bottom-width: 2px;
+}
+
+.bxmax-booking__input:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 4px;
+}
+
+.bxmax-booking__label {
+    position: absolute;
+    left: 0;
+    top: 28px;
+    font-size: 17px;
+    line-height: 26px;
+    letter-spacing: 0.5px;
+    color: rgba(0, 0, 0, 0.56);
+    pointer-events: none;
+    transition: transform 0.3s ease, font-size 0.3s ease, color 0.3s ease;
+}
+
+.bxmax-booking__input:focus ~ .bxmax-booking__label,
+.bxmax-booking__input:not(:placeholder-shown) ~ .bxmax-booking__label {
+    transform: translateY(-26px);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #000;
+}
+
+/* Чекбокс согласия */
+.bxmax-booking__consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.bxmax-booking__checkbox {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    accent-color: #000;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.bxmax-booking__checkbox:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+}
+
+.bxmax-booking__consent-label {
+    font-size: 14px;
+    line-height: 21px;
+    color: #2b2723;
+    cursor: pointer;
+}
+
+/* Статус / ошибка */
+.bxmax-booking__feedback {
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    border: 1px solid #000;
+    background-color: #fff5f5;
+    color: #8a1c1c;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.bxmax-booking__actions {
+    text-align: center;
+    padding-top: 8px;
+}
+
+/* Экран успеха */
+.bxmax-booking__success {
+    padding: 24px 0;
+}
+
+.bxmax-booking__success-arch {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 56px 40px 44px;
+    background-color: #FEFAF6;
+    border: 1px solid #000;
+    border-radius: 260px 260px 0 0;
+    text-align: center;
+}
+
+.bxmax-booking__success-badge {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    border: 1px solid #D9BDA3;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    color: #000;
+}
+
+.bxmax-booking__success-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 36px;
+    line-height: 46px;
+    font-weight: 400;
+    margin: 0 0 12px;
+}
+
+.bxmax-booking__success-subtitle {
+    font-size: 15px;
+    line-height: 24px;
+    color: #4a433c;
+    max-width: 440px;
+    margin: 0 auto 32px;
+}
+
+.bxmax-booking__success-details {
+    margin: 0 0 32px;
+    text-align: left;
+    border-top: 1px solid #000;
+}
+
+.bxmax-booking__success-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+}
+
+.bxmax-booking__success-row dt {
+    color: #6b6259;
+    font-weight: 400;
+}
+
+.bxmax-booking__success-row dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+    color: #000;
+}
+
+@media (max-width: 991px) {
+    .bxmax-booking__masters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bxmax-booking__schedule {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .bxmax-booking__step-title {
+        font-size: 22px;
+        line-height: 28px;
+    }
+
+    .bxmax-booking__masters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .bxmax-booking__master-avatar {
+        height: 128px;
+    }
+
+    .bxmax-booking__schedule {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bxmax-booking__fields-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .bxmax-booking__week-nav {
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 8px;
+    }
+
+    .bxmax-booking__week-label {
+        min-width: 0;
+        font-size: 15px;
+    }
+
+    .bxmax-booking__success-arch {
+        padding: 40px 20px 32px;
+        border-radius: 160px 160px 0 0;
+    }
+
+    .bxmax-booking__success-title {
+        font-size: 26px;
+        line-height: 34px;
+    }
+}
+
+@media (max-width: 420px) {
+    .bxmax-booking__masters {
+        grid-template-columns: 1fr;
+    }
+
+    .bxmax-booking__schedule {
+        grid-template-columns: 1fr;
+    }
+
+    .bxmax-booking__service-pill {
+        width: 100%;
+        justify-content: space-between;
+        padding: 12px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bxmax-booking__service-pill,
+    .bxmax-booking__master-card,
+    .bxmax-booking__master-avatar img,
+    .bxmax-booking__week-btn,
+    .bxmax-booking__slot,
+    .bxmax-booking__input,
+    .bxmax-booking__label {
+        transition: none !important;
+    }
+}
