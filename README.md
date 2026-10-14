@@ -31,6 +31,7 @@
 
 | Связка | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| Claude Code · Claude Opus 5.5 High | 88.5 | 90.5 | **89.5** | 1 | 48 мин | 60% 5ч · Pro ($20) | [verdict](submissions/claude-code/claude-opus-5-5-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-claude-opus-5-5-high) |
 | Claude Code · Claude Sonnet 5.5 High | 85.0 | 85.5 | **85.2** | 1 | 36 мин | 56% 5ч · Pro ($20) | [verdict](submissions/claude-code/claude-sonnet-5-5-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-claude-sonnet-5-5-high) |
 
 ### Тир B

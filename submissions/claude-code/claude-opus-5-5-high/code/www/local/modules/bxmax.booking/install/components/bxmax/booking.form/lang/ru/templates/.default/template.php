@@ -1,0 +1,30 @@
+<?php
+
+$MESS['BXMAX_BOOKING_FORM_EMPTY'] = 'Онлайн-запись скоро откроется. А пока звоните — запишем по телефону.';
+$MESS['BXMAX_BOOKING_FORM_STEP_SERVICE'] = 'Услуга';
+$MESS['BXMAX_BOOKING_FORM_STEP_MASTER'] = 'Мастер';
+$MESS['BXMAX_BOOKING_FORM_STEP_SLOT'] = 'Дата и время';
+$MESS['BXMAX_BOOKING_FORM_STEP_CONTACTS'] = 'Контакты';
+$MESS['BXMAX_BOOKING_FORM_DURATION'] = '#MIN# мин';
+$MESS['BXMAX_BOOKING_FORM_PRICE'] = '#PRICE# ₽';
+$MESS['BXMAX_BOOKING_FORM_MASTER_NA'] = 'не делает эту услугу';
+$MESS['BXMAX_BOOKING_FORM_WEEK_PREV'] = 'Предыдущая неделя';
+$MESS['BXMAX_BOOKING_FORM_WEEK_NEXT'] = 'Следующая неделя';
+$MESS['BXMAX_BOOKING_FORM_SLOTS_HELP'] = 'Стрелки — переход между окошками, Page Up и Page Down — между днями, Enter или пробел — выбрать время.';
+$MESS['BXMAX_BOOKING_FORM_SLOTS_CHOOSE_MASTER'] = 'Выберите мастера — покажем свободные окошки на неделю.';
+$MESS['BXMAX_BOOKING_FORM_LEGEND_FREE'] = 'свободно';
+$MESS['BXMAX_BOOKING_FORM_LEGEND_TAKEN'] = 'занято';
+$MESS['BXMAX_BOOKING_FORM_NAME'] = 'Имя';
+$MESS['BXMAX_BOOKING_FORM_PHONE'] = 'Телефон';
+$MESS['BXMAX_BOOKING_FORM_CONSENT'] = 'Даю согласие на обработку персональных данных в соответствии с <a href="#URL#" target="_blank" rel="noopener">политикой студии</a>';
+$MESS['BXMAX_BOOKING_FORM_SUBMIT'] = 'Записаться';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_LABEL'] = 'Готово';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_TITLE'] = 'Вы записаны. <em>Ждём вас!</em>';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_NUMBER'] = 'Номер записи';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_SERVICE'] = 'Услуга';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_MASTER'] = 'Мастер';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_WHEN'] = 'Когда';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_NAME'] = 'Имя';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_PHONE'] = 'Телефон';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_NOTE'] = 'Администратор позвонит накануне, чтобы напомнить о визите. Если планы изменятся — просто перезвоните нам.';
+$MESS['BXMAX_BOOKING_FORM_SUCCESS_AGAIN'] = 'Записаться ещё';
