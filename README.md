@@ -38,6 +38,7 @@
 
 | Связка | Визуал | Бэкенд | Balanced | Итерации | Время | Расход | Вердикт | Разбор на сайте |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| Claude Code · Fable 5.2 High | 87.0 | 81.0 | **83.9** | 1 | 50 мин | 166% 5ч · Pro ($20) | [verdict](submissions/claude-code/fable-5-2-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-fable-5-2-high) |
 | Claude Code · Claude Opus 5 High | 79.5 | 85.0 | **82.2** | 1 | 90 мин | 14% 5ч · Max 5x ($100) | [verdict](submissions/claude-code/claude-opus-5-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/claude-code-claude-opus-5-high) |
 | Cursor · Grok 4.6 High | 65.5 | 78.5 | **71.7** | 1 | 45 мин | 2% мес. · Pro ($20) | [verdict](submissions/cursor/grok-4-6-high/verdict.md) | [bxmax.ru](https://bxmax.ru/bitrix-ai/challenge/cursor-grok-4-6-high) |
 
