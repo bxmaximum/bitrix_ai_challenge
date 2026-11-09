@@ -1,0 +1,17 @@
+app: "claude-code"
+model_snapshot: "Fable 5.2 High"
+run_date: "2026-11-10"
+bitrix_kernel: "26.1000.0"
+task_version: "6c7e423"
+skills_version: "0c65452"
+iterations: 1
+duration_min: 50
+tokens_in: 250
+tokens_out: 266200
+cache_read: 45000000
+cache_write: 561300
+cost_kind: "limit_5h"
+cost_value: 166
+cost_plan: "Pro ($20)"
+published: true
+note: ""
